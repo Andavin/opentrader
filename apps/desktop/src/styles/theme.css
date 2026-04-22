@@ -1,0 +1,74 @@
+/*
+ * opentrader theme tokens — extracted from Robinhood Legend reference shots.
+ * Tokens are CSS variables so the "auras" feature can swap palette by
+ * trading session / P&L without touching components.
+ */
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+}
+
+:root {
+  color-scheme: dark;
+
+  --bg-base: #0d0c0e;
+  --bg-elevated: #161217;
+  --bg-panel: #1c181f;
+  --bg-hover: #221d24;
+  --bg-active: #2a242c;
+  --bg-input: #15121a;
+
+  --border-subtle: #211c25;
+  --border: #2d2730;
+  --border-strong: #443c4a;
+
+  --text-primary: #f0ecef;
+  --text-secondary: #b8b1be;
+  --text-muted: #7e7686;
+  --text-disabled: #4d4753;
+
+  --accent: #ff5000;
+  --accent-hover: #ff6a1e;
+  --accent-pressed: #e64600;
+  --accent-text: #ffffff;
+  --accent-soft: color-mix(in oklab, var(--accent) 18%, transparent);
+
+  --price-up: #00c805;
+  --price-up-soft: color-mix(in oklab, var(--price-up) 18%, transparent);
+  --price-down: #ff3b3b;
+  --price-down-soft: color-mix(in oklab, var(--price-down) 18%, transparent);
+  --price-neutral: var(--text-secondary);
+
+  --info: #4ea1ff;
+  --warning: #ffb547;
+  --danger: #ff3b3b;
+  --success: var(--price-up);
+
+  --aura-from: rgba(255, 80, 0, 0.04);
+  --aura-to: rgba(255, 80, 0, 0);
+}
+
+[data-aura='extended'] {
+  --aura-from: rgba(78, 161, 255, 0.05);
+  --aura-to: rgba(78, 161, 255, 0);
+}
+
+[data-aura='profit'] {
+  --aura-from: rgba(0, 200, 5, 0.05);
+  --aura-to: rgba(0, 200, 5, 0);
+}
+
+[data-aura='loss'] {
+  --aura-from: rgba(255, 59, 59, 0.06);
+  --aura-to: rgba(255, 59, 59, 0);
+}
+
+[data-aura='focus'] {
+  --aura-from: transparent;
+  --aura-to: transparent;
+}

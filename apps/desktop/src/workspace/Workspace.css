@@ -1,0 +1,24 @@
+.workspace-root {
+  display: grid;
+  grid-template-rows: 46px 1fr;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  position: relative;
+}
+
+.workspace-aura {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 18% -8%, var(--aura-from) 0%, var(--aura-to) 55%);
+  z-index: 0;
+}
+
+.workspace-dock {
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+  border-top: 1px solid var(--border-subtle);
+}

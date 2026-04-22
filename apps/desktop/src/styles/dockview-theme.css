@@ -1,0 +1,37 @@
+/* Dockview theme override using opentrader tokens */
+
+.opentrader-dockview {
+  --dv-paneview-active-outline-color: var(--accent);
+
+  --dv-tabs-and-actions-container-background-color: var(--bg-base);
+  --dv-tabs-and-actions-container-font-size: 13px;
+  --dv-tabs-and-actions-container-height: 34px;
+
+  --dv-group-view-background-color: var(--bg-panel);
+
+  --dv-tabs-container-scrollbar-color: var(--border);
+
+  --dv-activegroup-visiblepanel-tab-background-color: var(--bg-elevated);
+  --dv-activegroup-visiblepanel-tab-color: var(--text-primary);
+
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--bg-base);
+  --dv-activegroup-hiddenpanel-tab-color: var(--text-muted);
+
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--bg-elevated);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--text-secondary);
+
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--bg-base);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--text-muted);
+
+  --dv-tab-divider-color: var(--border-subtle);
+
+  --dv-separator-border: var(--border-subtle);
+  --dv-paneview-header-border-color: var(--border-subtle);
+
+  --dv-icon-hover-background-color: var(--bg-hover);
+
+  --dv-floating-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--border-strong);
+
+  --dv-drag-over-background-color: var(--accent-soft);
+  --dv-drag-over-border-color: var(--accent);
+}

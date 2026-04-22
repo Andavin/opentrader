@@ -1,0 +1,31 @@
+.account-dropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.account-dropdown:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+
+.account-dropdown-broker {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--bg-active);
+}
+
+.account-dropdown-name {
+  font-weight: 500;
+}
