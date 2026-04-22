@@ -1,0 +1,50 @@
+# BAZINGA - Auto-generated (do not edit this section)
+bazinga/*.db*
+bazinga/artifacts/
+
+# === opentrader ===
+
+# deps & build
+node_modules/
+dist/
+build/
+.turbo/
+.cache/
+.pnpm-store/
+
+# rust / tauri
+target/
+**/src-tauri/target/
+**/src-tauri/gen/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+*.swp
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# test
+coverage/
+*.lcov
+
+# local SQLite + playwright profiles (user data, never commit)
+*.db
+*.db-journal
+*.db-wal
+playwright-profiles/
+

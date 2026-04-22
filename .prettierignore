@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+target
+.next
+coverage
+pnpm-lock.yaml
+src-tauri/gen
+*.png
