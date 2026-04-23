@@ -1,12 +1,8 @@
-.account-dropdown-root {
-  position: relative;
-}
-
 .account-dropdown {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
@@ -24,7 +20,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 10px;
+  font-size: 9px;
   padding: 2px 5px;
   border-radius: 3px;
   background: var(--bg-active);
@@ -35,19 +31,11 @@
 }
 
 .account-dropdown-popover {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  min-width: 320px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
-  padding: 10px;
-  z-index: 15;
+  min-width: 280px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .account-dropdown-header {
@@ -55,20 +43,22 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .account-dropdown-broker-tag {
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-muted);
 }
 
 .account-dropdown-conn {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .account-dropdown-conn.is-connected {
@@ -82,14 +72,14 @@
 .account-dropdown-section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .account-dropdown-cta {
   background: var(--accent);
   color: var(--accent-text);
   border: 0;
-  padding: 8px 12px;
+  padding: 7px 10px;
   border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: 600;
@@ -98,4 +88,54 @@
 
 .account-dropdown-cta:hover {
   background: var(--accent-hover);
+}
+
+.account-dropdown-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 2px 0;
+}
+
+.account-dropdown-section-title {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+.account-dropdown-broker-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 8px;
+  background: transparent;
+  border: 0;
+  color: var(--text-primary);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.account-dropdown-broker-row:hover {
+  background: var(--bg-hover);
+}
+
+.account-dropdown-broker-row.is-active {
+  background: var(--accent-soft);
+}
+
+.account-dropdown-broker-row.is-add {
+  color: var(--text-secondary);
+}
+
+.account-dropdown-broker-label {
+  flex: 1;
+}
+
+.account-dropdown-broker-status {
+  color: var(--price-up);
+  font-size: 10px;
 }

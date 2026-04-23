@@ -30,6 +30,9 @@ export interface DataFeedState {
 }
 
 export const brokerClient = {
+  /** All registered brokers + their connection status. */
+  listBrokers: () => sidecarFetch<BrokerStatus[]>(`/broker/`),
+
   status: (brokerId: BrokerId) => sidecarFetch<BrokerStatus>(`/broker/${brokerId}/status`),
 
   connect: (brokerId: BrokerId, credentials: object) =>

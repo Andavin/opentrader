@@ -11,6 +11,17 @@ export function useBrokerStatus(brokerId: BrokerId) {
   });
 }
 
+/** All registered brokers + their connection status, in one round-trip. */
+export function useConnectedBrokers(enabled = true) {
+  return useQuery({
+    queryKey: ['brokers'],
+    queryFn: () => brokerClient.listBrokers(),
+    enabled,
+    refetchInterval: 10_000,
+    staleTime: 5_000,
+  });
+}
+
 export function useQuote(brokerId: BrokerId, symbol: string | null, enabled = true) {
   return useQuery({
     queryKey: ['quote', brokerId, symbol],

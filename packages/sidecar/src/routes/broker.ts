@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 
-import { getBroker } from '../registry';
+import { getBroker, listBrokerIds } from '../registry';
 
 const app = new Hono();
 
@@ -63,6 +63,23 @@ app.onError((err, c) => {
   if (err instanceof HTTPBadRequest) return c.json({ error: err.message }, 400);
   if (err instanceof z.ZodError) return c.json({ error: 'validation', issues: err.issues }, 400);
   return c.json({ error: err.message ?? 'internal' }, 500);
+});
+
+app.get('/', (c) => {
+  // Aggregate of every registered broker's status — lets the UI render
+  // the broker list (account dropdown, data-source picker) in one
+  // round-trip instead of N parallel /status calls.
+  const out = listBrokerIds().map((id) => {
+    const b = getBroker(id);
+    if (!b) return null;
+    return {
+      id: b.id,
+      label: b.label,
+      capabilities: b.capabilities,
+      connected: b.isConnected(),
+    };
+  });
+  return c.json(out.filter((x): x is NonNullable<typeof x> => x !== null));
 });
 
 app.get('/:brokerId/status', (c) => {

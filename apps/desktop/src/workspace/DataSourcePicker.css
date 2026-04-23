@@ -1,7 +1,3 @@
-.data-source-picker {
-  position: relative;
-}
-
 .data-source-trigger {
   display: inline-flex;
   align-items: center;
@@ -33,16 +29,14 @@
 }
 
 .data-source-popover {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  min-width: 220px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
-  padding: 4px;
-  z-index: 12;
+  min-width: 240px;
+}
+
+.data-source-status {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .data-source-item {
@@ -50,7 +44,7 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 7px 10px;
+  padding: 6px 10px;
   background: transparent;
   border: 0;
   color: var(--text-primary);
