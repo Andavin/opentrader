@@ -81,6 +81,8 @@ class AlpacaBroker implements Broker {
   private creds: AlpacaCredentials | null = null;
   private feeds: DataFeed[] = [];
   private activeFeed: AlpacaFeed = 'iex';
+  /** True once the user has explicitly picked a feed via setActiveDataFeed. */
+  private userPickedFeed = false;
 
   constructor(private readonly deps: BrokerDeps) {}
 
@@ -103,6 +105,7 @@ class AlpacaBroker implements Broker {
     this.creds = null;
     this.feeds = [];
     this.activeFeed = 'iex';
+    this.userPickedFeed = false;
   }
 
   // ---- data-feed management ----
@@ -120,6 +123,7 @@ class AlpacaBroker implements Broker {
     if (!found) throw new Error(`unknown alpaca feed: ${feedId}`);
     if (!found.available) throw new Error(`feed ${feedId} not available on this subscription`);
     this.activeFeed = feedId as AlpacaFeed;
+    this.userPickedFeed = true;
     this.deps.log('info', 'alpaca data feed changed', { feed: this.activeFeed });
   }
 
@@ -127,10 +131,14 @@ class AlpacaBroker implements Broker {
     const rest = this.requireRest();
     const feeds = await probeAlpacaFeeds(rest);
     this.feeds = feeds;
-    // If the active feed is no longer available (e.g. subscription downgrade),
-    // fall back to the highest-quality available one.
-    const active = feeds.find((f) => f.id === this.activeFeed && f.available);
-    if (!active) {
+    // Pick the active feed:
+    //   1. If the current is no longer available, fall back to preferred.
+    //   2. Else if the user has never explicitly chosen, upgrade to preferred
+    //      (so initial connect picks SIP for paying users instead of leaving
+    //      them on the default IEX).
+    //   3. Else respect the user's explicit choice.
+    const stillAvailable = feeds.find((f) => f.id === this.activeFeed && f.available);
+    if (!stillAvailable || !this.userPickedFeed) {
       const fallback = feeds.find((f) => f.isPreferred) ?? feeds.find((f) => f.available);
       if (fallback) this.activeFeed = fallback.id as AlpacaFeed;
     }

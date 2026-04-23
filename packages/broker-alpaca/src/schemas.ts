@@ -94,7 +94,11 @@ export const barSchema = z.object({
 });
 
 export const barsResponseSchema = z.object({
-  bars: z.array(barSchema).nullable().default([]),
+  bars: z
+    .array(barSchema)
+    .nullable()
+    .default([])
+    .transform((v) => v ?? []),
   symbol: z.string(),
   next_page_token: z.string().nullable().optional(),
 });
