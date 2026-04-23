@@ -1,126 +1,523 @@
-.options-chain {
-  display: grid;
-  grid-template-rows: 36px 1fr;
+/* ============================================================
+   Options Chain Widget — ocw-* namespace
+   ============================================================ */
+
+/* Root container fills the dockview panel */
+.ocw-root {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   background: var(--bg-panel);
   color: var(--text-primary);
+  font-size: 12px;
+  overflow: hidden;
 }
 
-.options-chain-header {
+/* ---- top tab bar ---- */
+
+.ocw-topbar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 10px;
+  gap: 0;
+  padding: 0 8px 0 0;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-elevated);
+  flex-shrink: 0;
 }
 
-.options-chain-symbol {
-  font-weight: 600;
-  font-size: 13px;
-  min-width: 60px;
+.ocw-tabs {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
 }
 
-.options-chain-exp {
-  height: 26px;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  border-radius: var(--radius-sm);
+.ocw-tab {
+  padding: 0 14px;
+  height: 34px;
   font-size: 12px;
-  padding: 0 8px;
-  outline: none;
-}
-
-.options-chain-exp:focus {
-  border-color: var(--accent);
-}
-
-.options-chain-status {
-  margin-left: auto;
-  color: var(--text-muted);
-  font-size: 11px;
-}
-
-.options-chain-grid {
-  overflow: auto;
-  height: 100%;
-}
-
-.options-chain-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.options-chain-table th {
-  padding: 4px 8px;
-  text-align: right;
-  color: var(--text-muted);
   font-weight: 500;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+}
+
+.ocw-tab:hover {
+  color: var(--text-primary);
+}
+
+.ocw-tab.is-active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent);
+}
+
+.ocw-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* ---- body (chain tab) ---- */
+
+.ocw-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ---- symbol / price bar ---- */
+
+.ocw-symbol-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px 5px;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-elevated);
-  position: sticky;
-  top: 0;
-  z-index: 1;
+  flex-shrink: 0;
 }
 
-.options-chain-side-header.is-call {
-  color: var(--price-up);
-  text-align: center;
-  background: color-mix(in oklab, var(--price-up) 8%, var(--bg-elevated));
+.ocw-symbol {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.01em;
 }
 
-.options-chain-side-header.is-put {
+.ocw-price {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ocw-change {
+  font-size: 12px;
+}
+
+.ocw-change-pct {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.ocw-spacer {
+  flex: 1;
+}
+
+.ocw-loading-indicator {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.ocw-error {
+  font-size: 11px;
   color: var(--price-down);
+}
+
+.price-up {
+  color: var(--price-up);
+}
+
+.price-down {
+  color: var(--price-down);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* ---- columns header row ---- */
+
+.ocw-cols-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+.ocw-cols-calls {
+  flex: 1;
   text-align: center;
-  background: color-mix(in oklab, var(--price-down) 8%, var(--bg-elevated));
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--price-up);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.options-chain-strike-header {
-  text-align: center !important;
-  background: var(--bg-active) !important;
+.ocw-cols-strike {
+  width: 64px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.options-chain-table td {
-  padding: 4px 8px;
-  text-align: right;
+.ocw-cols-puts {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--price-down);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ocw-customize-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    background 0.12s;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.ocw-customize-btn:hover,
+.ocw-customize-btn.is-active {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border-color: var(--border-subtle);
+}
+
+/* ---- content area (accordion + optional panel) ---- */
+
+.ocw-content-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ---- accordion ---- */
+
+.ocw-accordion {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.ocw-accordion-item {
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.options-chain-table tbody tr:hover {
+/* ---- expiration row ---- */
+
+.ocw-exp-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 32px;
+  padding: 0 8px 0 6px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-panel);
+  transition: background 0.1s;
+}
+
+.ocw-exp-row:hover {
   background: var(--bg-hover);
 }
 
-.options-chain-strike {
+.ocw-exp-row.is-expanded {
   background: var(--bg-active);
-  text-align: center !important;
-  font-weight: 600;
 }
 
-.options-chain-clickable {
+.ocw-exp-chevron {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.ocw-exp-dte {
+  width: 40px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.ocw-exp-dow {
+  width: 34px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.ocw-exp-date {
+  width: 54px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ocw-exp-iv {
+  width: 62px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ocw-exp-move {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- strikes section ---- */
+
+.ocw-strikes-section {
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.ocw-strikes-wrap {
+  overflow-x: auto;
+}
+
+.ocw-strikes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* sticky header rows */
+.ocw-th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 3px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  white-space: nowrap;
+}
+
+.ocw-th--calls {
+  color: var(--price-up);
+  text-align: center;
+  background: color-mix(in oklab, var(--price-up) 6%, var(--bg-elevated));
+}
+
+.ocw-th--puts {
+  color: var(--price-down);
+  text-align: center;
+  background: color-mix(in oklab, var(--price-down) 6%, var(--bg-elevated));
+}
+
+.ocw-th--strike {
+  text-align: center;
+  background: var(--bg-active);
+  color: var(--text-secondary);
+  min-width: 58px;
+}
+
+.ocw-th--strike-sub {
+  text-align: center;
+  background: var(--bg-active);
+  color: var(--text-disabled);
+  min-width: 58px;
+}
+
+.ocw-th--col {
+  min-width: 52px;
+}
+
+/* data cells */
+.ocw-td {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.ocw-td--num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ocw-td--strike {
+  text-align: center;
+  font-weight: 600;
+  background: var(--bg-active);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.ocw-strike-row:hover .ocw-td {
+  background: var(--bg-hover);
+}
+
+.ocw-strike-row:hover .ocw-td--strike {
+  background: var(--bg-active);
+}
+
+/* clickable bid/ask */
+.ocw-clickable {
   cursor: pointer;
   font-weight: 500;
 }
 
-.options-chain-clickable:hover {
-  background: var(--accent-soft);
+.ocw-clickable:hover {
+  background: var(--accent-soft) !important;
   color: var(--accent);
 }
 
-.options-chain-empty,
-.options-chain-empty-row {
+/* ITM coloring — green tint for calls ITM, red for puts ITM */
+.is-itm-call {
+  background: var(--price-up-soft);
+}
+
+.is-itm-put {
+  background: var(--price-down-soft);
+}
+
+/* Hover overrides the ITM tint but keeps the row feel readable */
+.ocw-strike-row:hover .is-itm-call {
+  background: color-mix(in oklab, var(--price-up) 12%, var(--bg-hover));
+}
+
+.ocw-strike-row:hover .is-itm-put {
+  background: color-mix(in oklab, var(--price-down) 12%, var(--bg-hover));
+}
+
+/* ---- spot price divider ---- */
+
+.ocw-spot-divider {
+  pointer-events: none;
+}
+
+.ocw-spot-divider-cell {
+  padding: 0;
+  position: relative;
+  border-top: 1px solid var(--accent);
+  border-bottom: none;
+  background: transparent;
+}
+
+.ocw-spot-label {
+  position: absolute;
+  right: 8px;
+  top: -9px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg-panel);
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+/* ---- customize panel ---- */
+
+.ocw-customize-panel {
+  width: 200px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.ocw-customize-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 12px 8px;
+}
+
+.ocw-customize-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: background 0.1s;
+}
+
+.ocw-customize-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.ocw-customize-check {
+  accent-color: var(--accent);
+  cursor: pointer;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+/* ---- empty / loading / error states ---- */
+
+.ocw-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
   padding: 32px;
+  color: var(--text-muted);
+  font-size: 12px;
   text-align: center;
+}
+
+.ocw-loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px;
   color: var(--text-muted);
   font-size: 12px;
 }
 
-.options-chain-empty-row td {
+.ocw-empty-row {
+  padding: 20px;
   text-align: center;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.ocw-simulated-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ---- spinner ---- */
+
+@keyframes ocw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ocw-spin {
+  animation: ocw-spin 0.9s linear infinite;
 }
