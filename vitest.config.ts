@@ -10,6 +10,8 @@ export default defineConfig({
     projects: [
       'packages/broker-core',
       'packages/broker-alpaca',
+      'packages/broker-robinhood',
+      'packages/broker-fidelity',
       'packages/db',
       'packages/sidecar',
       'apps/desktop',
