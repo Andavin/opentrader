@@ -8,6 +8,7 @@ import type {
   BrokerDeps,
   Candle,
   CandleInterval,
+  DataFeed,
   Order,
   OrderRequest,
   OrderStatus,
@@ -17,6 +18,7 @@ import type {
 } from '@opentrader/broker-core';
 import { z } from 'zod';
 
+import { probeAlpacaFeeds, type AlpacaFeed } from './feeds';
 import { AlpacaRest, type AlpacaCredentials, type AlpacaTimeframe } from './rest';
 import type { AlpacaOrder } from './schemas';
 
@@ -77,6 +79,8 @@ class AlpacaBroker implements Broker {
 
   private rest: AlpacaRest | null = null;
   private creds: AlpacaCredentials | null = null;
+  private feeds: DataFeed[] = [];
+  private activeFeed: AlpacaFeed = 'iex';
 
   constructor(private readonly deps: BrokerDeps) {}
 
@@ -87,17 +91,57 @@ class AlpacaBroker implements Broker {
   async connect(opts?: BrokerConnectOptions & Partial<AlpacaCredentials>): Promise<void> {
     const parsed = credentialsSchema.parse(opts);
     const rest = new AlpacaRest(parsed);
-    // Validate by fetching the account; throws AlpacaApiError on bad creds.
-    await rest.getAccount();
+    await rest.getAccount(); // throws on bad creds
     this.creds = parsed;
     this.rest = rest;
-    this.deps.log('info', 'alpaca connected', { paper: parsed.paper });
+    await this.refreshDataFeeds();
+    this.deps.log('info', 'alpaca connected', { paper: parsed.paper, feed: this.activeFeed });
   }
 
   async disconnect(): Promise<void> {
     this.rest = null;
     this.creds = null;
+    this.feeds = [];
+    this.activeFeed = 'iex';
   }
+
+  // ---- data-feed management ----
+
+  listDataFeeds(): DataFeed[] {
+    return this.feeds;
+  }
+
+  getActiveDataFeed(): string {
+    return this.activeFeed;
+  }
+
+  setActiveDataFeed(feedId: string): void {
+    const found = this.feeds.find((f) => f.id === feedId);
+    if (!found) throw new Error(`unknown alpaca feed: ${feedId}`);
+    if (!found.available) throw new Error(`feed ${feedId} not available on this subscription`);
+    this.activeFeed = feedId as AlpacaFeed;
+    this.deps.log('info', 'alpaca data feed changed', { feed: this.activeFeed });
+  }
+
+  async refreshDataFeeds(): Promise<DataFeed[]> {
+    const rest = this.requireRest();
+    const feeds = await probeAlpacaFeeds(rest);
+    this.feeds = feeds;
+    // If the active feed is no longer available (e.g. subscription downgrade),
+    // fall back to the highest-quality available one.
+    const active = feeds.find((f) => f.id === this.activeFeed && f.available);
+    if (!active) {
+      const fallback = feeds.find((f) => f.isPreferred) ?? feeds.find((f) => f.available);
+      if (fallback) this.activeFeed = fallback.id as AlpacaFeed;
+    }
+    this.deps.log('info', 'alpaca feeds refreshed', {
+      active: this.activeFeed,
+      available: feeds.filter((f) => f.available).map((f) => f.id),
+    });
+    return feeds;
+  }
+
+  // ---- core broker methods ----
 
   private requireRest(): AlpacaRest {
     if (!this.rest) throw new Error('alpaca not connected');
@@ -112,8 +156,6 @@ class AlpacaBroker implements Broker {
         brokerId: this.id,
         accountId: a.id,
         name: a.account_number,
-        // Alpaca exposes a single brokerage account per key; extending later
-        // when sub-account API is wired in.
         type: 'individual',
         mode: this.creds.paper ? 'paper' : 'live',
         currency: a.currency,
@@ -123,12 +165,10 @@ class AlpacaBroker implements Broker {
 
   async getBalances(_account: AccountRef): Promise<AccountBalances> {
     const a = await this.requireRest().getAccount();
-    const equity = a.equity;
-    const lastEquity = a.last_equity;
-    const dayPnL = equity - lastEquity;
-    const dayPnLPct = lastEquity ? dayPnL / lastEquity : 0;
+    const dayPnL = a.equity - a.last_equity;
+    const dayPnLPct = a.last_equity ? dayPnL / a.last_equity : 0;
     return {
-      equity,
+      equity: a.equity,
       cash: a.cash,
       buyingPower: a.buying_power,
       optionBuyingPower: a.options_buying_power,
@@ -141,7 +181,10 @@ class AlpacaBroker implements Broker {
 
   async getQuote(symbol: string): Promise<Quote> {
     const rest = this.requireRest();
-    const [q, t] = await Promise.all([rest.getLatestQuote(symbol), rest.getLatestTrade(symbol)]);
+    const [q, t] = await Promise.all([
+      rest.getLatestQuote(symbol, this.activeFeed),
+      rest.getLatestTrade(symbol, this.activeFeed),
+    ]);
     return {
       symbol,
       bid: q.bid,
@@ -164,6 +207,7 @@ class AlpacaBroker implements Broker {
       timeframe: INTERVAL_MAP[req.interval],
       start: new Date(req.from).toISOString(),
       end: new Date(req.to).toISOString(),
+      feed: this.activeFeed,
     });
     return bars.map((b) => ({
       time: new Date(b.t).getTime(),

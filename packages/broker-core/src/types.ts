@@ -191,3 +191,18 @@ export interface Order {
   submittedAt: string;
   updatedAt: string;
 }
+
+/**
+ * A market-data feed/tier the broker exposes (e.g. Alpaca's sip /
+ * delayed_sip / iex). Brokers without tiered feeds simply don't
+ * implement the data-feed methods on Broker.
+ */
+export interface DataFeed {
+  id: string;
+  label: string;
+  /** False = user is not entitled to this feed (subscription gates it). */
+  available: boolean;
+  description?: string;
+  /** True if this is the highest-quality available feed. */
+  isPreferred?: boolean;
+}

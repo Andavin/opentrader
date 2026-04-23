@@ -144,4 +144,35 @@ app.get('/:brokerId/options/:underlying', async (c) => {
   return c.json(await broker.getOptionsChain({ underlying, expiration }));
 });
 
+// ---- data-feed selection (only brokers that implement the optional methods) ----
+
+const setFeedSchema = z.object({ feed: z.string() });
+
+app.get('/:brokerId/data-feed', (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  if (!broker.listDataFeeds || !broker.getActiveDataFeed) {
+    throw new HTTPBadRequest('broker does not expose data-feed selection');
+  }
+  return c.json({ feeds: broker.listDataFeeds(), active: broker.getActiveDataFeed() });
+});
+
+app.post('/:brokerId/data-feed', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  if (!broker.setActiveDataFeed) {
+    throw new HTTPBadRequest('broker does not expose data-feed selection');
+  }
+  const { feed } = setFeedSchema.parse(await c.req.json());
+  broker.setActiveDataFeed(feed);
+  return c.json({ active: feed });
+});
+
+app.post('/:brokerId/data-feed/refresh', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  if (!broker.refreshDataFeeds || !broker.getActiveDataFeed) {
+    throw new HTTPBadRequest('broker does not expose data-feed selection');
+  }
+  const feeds = await broker.refreshDataFeeds();
+  return c.json({ feeds, active: broker.getActiveDataFeed() });
+});
+
 export default app;

@@ -5,6 +5,7 @@ import type {
   BrokerId,
   Candle,
   CandleInterval,
+  DataFeed,
   Order,
   OrderRequest,
   OptionsChain,
@@ -71,6 +72,13 @@ export interface Broker {
   cancelOrder(account: AccountRef, orderId: string): Promise<void>;
   listOrders(account: AccountRef, opts?: { since?: string; limit?: number }): Promise<Order[]>;
   listPositions(account: AccountRef): Promise<Position[]>;
+
+  // optional data-feed selection — brokers without tiered feeds don't implement
+  listDataFeeds?(): DataFeed[];
+  getActiveDataFeed?(): string;
+  setActiveDataFeed?(feedId: string): void;
+  /** Re-probe entitlements (call after subscription changes). */
+  refreshDataFeeds?(): Promise<DataFeed[]>;
 }
 
 /**

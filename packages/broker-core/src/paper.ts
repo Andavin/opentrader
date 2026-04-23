@@ -4,6 +4,7 @@ import type {
   AccountRef,
   Candle,
   CandleInterval,
+  DataFeed,
   Order,
   OrderRequest,
   OptionsChain,
@@ -25,6 +26,10 @@ export class PaperBroker implements Broker {
     underlying: string;
     expiration?: string;
   }) => Promise<OptionsChain>;
+  readonly listDataFeeds?: () => DataFeed[];
+  readonly getActiveDataFeed?: () => string;
+  readonly setActiveDataFeed?: (feedId: string) => void;
+  readonly refreshDataFeeds?: () => Promise<DataFeed[]>;
 
   constructor(private readonly inner: Broker) {
     this.id = inner.id;
@@ -35,6 +40,18 @@ export class PaperBroker implements Broker {
     }
     if (inner.getOptionsChain) {
       this.getOptionsChain = inner.getOptionsChain.bind(inner);
+    }
+    if (inner.listDataFeeds) {
+      this.listDataFeeds = inner.listDataFeeds.bind(inner);
+    }
+    if (inner.getActiveDataFeed) {
+      this.getActiveDataFeed = inner.getActiveDataFeed.bind(inner);
+    }
+    if (inner.setActiveDataFeed) {
+      this.setActiveDataFeed = inner.setActiveDataFeed.bind(inner);
+    }
+    if (inner.refreshDataFeeds) {
+      this.refreshDataFeeds = inner.refreshDataFeeds.bind(inner);
     }
   }
 

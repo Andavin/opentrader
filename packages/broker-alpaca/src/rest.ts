@@ -32,6 +32,8 @@ export type AlpacaTimeframe =
   | '1Week'
   | '1Month';
 
+export type AlpacaFeedName = 'sip' | 'delayed_sip' | 'iex' | 'boats' | 'overnight';
+
 const TRADING_BASE = {
   paper: 'https://paper-api.alpaca.markets',
   live: 'https://api.alpaca.markets',
@@ -131,15 +133,21 @@ export class AlpacaRest {
 
   // ---- market data API ----
 
-  async getLatestQuote(symbol: string): Promise<{ bid: number; ask: number; asOf: string }> {
+  async getLatestQuote(
+    symbol: string,
+    feed: AlpacaFeedName,
+  ): Promise<{ bid: number; ask: number; asOf: string }> {
     const path = `/v2/stocks/${encodeURIComponent(symbol)}/quotes/latest`;
-    const res = await this.req(DATA_BASE, path, latestQuoteSchema);
+    const res = await this.req(DATA_BASE, path, latestQuoteSchema, { query: { feed } });
     return { bid: res.quote.bp, ask: res.quote.ap, asOf: res.quote.t };
   }
 
-  async getLatestTrade(symbol: string): Promise<{ price: number; size?: number; asOf: string }> {
+  async getLatestTrade(
+    symbol: string,
+    feed: AlpacaFeedName,
+  ): Promise<{ price: number; size?: number; asOf: string }> {
     const path = `/v2/stocks/${encodeURIComponent(symbol)}/trades/latest`;
-    const res = await this.req(DATA_BASE, path, latestTradeSchema);
+    const res = await this.req(DATA_BASE, path, latestTradeSchema, { query: { feed } });
     return { price: res.trade.p, size: res.trade.s, asOf: res.trade.t };
   }
 
@@ -149,6 +157,7 @@ export class AlpacaRest {
     start: string;
     end: string;
     limit?: number;
+    feed: AlpacaFeedName;
   }): Promise<AlpacaBar[]> {
     const path = `/v2/stocks/${encodeURIComponent(opts.symbol)}/bars`;
     const all: AlpacaBar[] = [];
@@ -161,7 +170,7 @@ export class AlpacaRest {
           end: opts.end,
           limit: opts.limit ?? 10000,
           adjustment: 'raw',
-          feed: 'iex',
+          feed: opts.feed,
           page_token: pageToken,
         },
       });
