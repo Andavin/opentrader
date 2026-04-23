@@ -11,7 +11,9 @@ import {
 import { useEffect, useRef } from 'react';
 
 import { brokerClient } from '../lib/brokerClient';
-import { useWorkspaceStore } from '../store/workspace';
+import { useBrokerStatus } from '../lib/queries';
+import { selectWidgetBroker, useWorkspaceStore } from '../store/workspace';
+import { DataSourcePicker } from '../workspace/DataSourcePicker';
 
 import './ChartWidget.css';
 
@@ -90,14 +92,16 @@ function makeDataLoader(getBroker: () => BrokerId, getInterval: () => CandleInte
   };
 }
 
-export function ChartWidget(_props: IDockviewPanelProps) {
+export function ChartWidget(props: IDockviewPanelProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<Chart | null>(null);
 
   const symbol = useWorkspaceStore((s) => s.activeSymbol);
   const interval = useWorkspaceStore((s) => s.chartInterval);
   const setInterval = useWorkspaceStore((s) => s.setChartInterval);
-  const dataBroker = useWorkspaceStore((s) => s.dataBroker);
+  const dataBroker = useWorkspaceStore(selectWidgetBroker(props.api.id));
+  const status = useBrokerStatus(dataBroker);
+  const isConnected = status.data?.connected === true;
 
   // Keep current broker/interval reachable inside the data-loader closure
   // without re-creating the loader on every render.
@@ -211,10 +215,16 @@ export function ChartWidget(_props: IDockviewPanelProps) {
             </button>
           ))}
         </div>
+        <span className="chart-toolbar-spacer" />
+        <DataSourcePicker panelId={props.api.id} />
       </div>
       {!symbol ? (
         <div className="chart-empty">
           <p>Pick a symbol from the watchlist to load a chart.</p>
+        </div>
+      ) : !isConnected ? (
+        <div className="chart-empty">
+          <p>{dataBroker} is not connected — chart data unavailable.</p>
         </div>
       ) : (
         <div ref={containerRef} className="chart-canvas" />
