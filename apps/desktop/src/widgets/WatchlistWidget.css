@@ -1,0 +1,147 @@
+.watchlist-widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+}
+
+.watchlist-add {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+}
+
+.watchlist-input {
+  flex: 1;
+  height: 28px;
+  padding: 0 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  outline: none;
+}
+
+.watchlist-input:focus {
+  border-color: var(--accent);
+}
+
+.watchlist-add-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-active);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.watchlist-add-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.watchlist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.watchlist-table th {
+  padding: 6px 10px;
+  text-align: right;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  position: sticky;
+  top: 0;
+}
+
+.watchlist-table th:first-child {
+  text-align: left;
+}
+
+.watchlist-table td {
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.watchlist-table td:first-child {
+  text-align: left;
+}
+
+.watchlist-table tbody tr {
+  cursor: pointer;
+  transition: background 100ms ease;
+}
+
+.watchlist-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+.watchlist-table tbody tr.is-active {
+  background: var(--accent-soft);
+}
+
+.watchlist-symbol {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.watchlist-row-actions button {
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  padding: 2px;
+  cursor: pointer;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.watchlist-row-actions button:hover {
+  background: var(--bg-active);
+  color: var(--text-primary);
+}
+
+.watchlist-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 100%;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.watchlist-connect-btn {
+  margin-top: 4px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.watchlist-connect-btn:hover {
+  background: var(--accent-hover);
+}

@@ -1,28 +1,33 @@
 import { DockviewReact, type DockviewApi, type DockviewReadyEvent } from 'dockview-react';
+import { useState } from 'react';
 
+import { ConnectAlpacaModal } from './ConnectAlpacaModal';
 import { TopBar } from './TopBar';
 import { widgetComponents } from '../widgets/registry';
 
 import './Workspace.css';
 
-function onReady(event: DockviewReadyEvent): void {
-  const api: DockviewApi = event.api;
-
-  api.addPanel({
-    id: 'welcome',
-    component: 'placeholder',
-    title: 'Daily Chart',
-    params: {
-      headline: 'opentrader',
-      sub: 'Phase 0 scaffold — pick a widget from "Add widget" to get started.',
-    },
-  });
-}
-
 export function Workspace() {
+  const [api, setApi] = useState<DockviewApi | null>(null);
+
+  function onReady(event: DockviewReadyEvent): void {
+    setApi(event.api);
+    event.api.addPanel({
+      id: 'welcome-watchlist',
+      component: 'watchlist',
+      title: 'Watchlist',
+    });
+    event.api.addPanel({
+      id: 'welcome-chart',
+      component: 'chart',
+      title: 'Chart',
+      position: { referencePanel: 'welcome-watchlist', direction: 'right' },
+    });
+  }
+
   return (
     <div className="workspace-root">
-      <TopBar />
+      <TopBar dockviewApi={api} />
       <div className="workspace-aura" aria-hidden />
       <div className="workspace-dock">
         <DockviewReact
@@ -32,6 +37,7 @@ export function Workspace() {
           singleTabMode="fullwidth"
         />
       </div>
+      <ConnectAlpacaModal />
     </div>
   );
 }

@@ -45,6 +45,14 @@
   color: var(--text-muted);
 }
 
+.price-up {
+  color: var(--price-up);
+}
+
+.price-down {
+  color: var(--price-down);
+}
+
 .topbar-icon-btn {
   display: inline-flex;
   align-items: center;
