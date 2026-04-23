@@ -165,9 +165,27 @@ export function ChartWidget(_props: IDockviewPanelProps) {
     { id: '1w', label: '1W' },
   ];
 
+  const openOrderTicket = useWorkspaceStore((s) => s.openOrderTicket);
+
   return (
     <div className="chart-widget">
       <div className="chart-toolbar">
+        <button
+          type="button"
+          className="chart-trade-btn is-buy"
+          disabled={!symbol}
+          onClick={() => symbol && openOrderTicket({ symbol, side: 'buy' })}
+        >
+          Buy
+        </button>
+        <button
+          type="button"
+          className="chart-trade-btn is-sell"
+          disabled={!symbol}
+          onClick={() => symbol && openOrderTicket({ symbol, side: 'sell' })}
+        >
+          Sell
+        </button>
         <span className="chart-symbol tabular">{symbol ?? '—'}</span>
         <div className="chart-intervals">
           {intervals.map((i) => (

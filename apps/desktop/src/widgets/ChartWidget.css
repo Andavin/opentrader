@@ -21,6 +21,41 @@
   font-size: 13px;
   color: var(--text-primary);
   min-width: 60px;
+  margin-left: 6px;
+}
+
+.chart-trade-btn {
+  height: 24px;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: white;
+}
+
+.chart-trade-btn.is-buy {
+  background: var(--price-up);
+}
+
+.chart-trade-btn.is-buy:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--price-up) 85%, white);
+}
+
+.chart-trade-btn.is-sell {
+  background: var(--price-down);
+}
+
+.chart-trade-btn.is-sell:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--price-down) 85%, white);
+}
+
+.chart-trade-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .chart-intervals {

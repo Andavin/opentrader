@@ -1,0 +1,188 @@
+.order-ticket {
+  width: 380px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.order-ticket-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.order-ticket-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-ticket-symbol {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.order-ticket-quote {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.order-ticket-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.order-ticket-tab {
+  background: transparent;
+  border: 0;
+  padding: 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid transparent;
+}
+
+.order-ticket-tab:hover {
+  color: var(--text-primary);
+}
+
+.order-ticket-tab.is-buy.is-active {
+  color: var(--price-up);
+  border-bottom-color: var(--price-up);
+}
+
+.order-ticket-tab.is-sell.is-active {
+  color: var(--price-down);
+  border-bottom-color: var(--price-down);
+}
+
+.order-ticket-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-ticket-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.order-ticket-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-ticket-field span {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.order-ticket-field input,
+.order-ticket-field select {
+  height: 32px;
+  padding: 0 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.order-ticket-field input:focus,
+.order-ticket-field select:focus {
+  border-color: var(--accent);
+}
+
+.order-ticket-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.order-ticket-summary {
+  margin: 4px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.order-ticket-summary div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.order-ticket-summary dt {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.order-ticket-summary dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.order-ticket-error {
+  font-size: 12px;
+  color: var(--danger);
+  background: var(--price-down-soft);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  margin: 0;
+}
+
+.order-ticket-submit {
+  height: 38px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  margin-top: 4px;
+  color: white;
+}
+
+.order-ticket-submit.is-buy {
+  background: var(--price-up);
+}
+
+.order-ticket-submit.is-buy:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--price-up) 85%, white);
+}
+
+.order-ticket-submit.is-sell {
+  background: var(--price-down);
+}
+
+.order-ticket-submit.is-sell:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--price-down) 85%, white);
+}
+
+.order-ticket-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
