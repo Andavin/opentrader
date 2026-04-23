@@ -11,6 +11,27 @@ import { listBrokerIds } from './registry';
 const log = createLogger('sidecar');
 const app = new Hono();
 
+// CORS first — must run BEFORE the bearer-auth check below. Browser
+// CORS preflights are OPTIONS requests with no Authorization header,
+// so if auth ran first the preflight would 401 and the browser would
+// abort the real request with "Failed to fetch" before ever sending
+// it. Always-set the headers + short-circuit OPTIONS with 204.
+//
+// Threat model on the wide-open allow-origin:
+//   - sidecar binds to 127.0.0.1 (HOST default) so only loopback peers
+//     can reach it at all
+//   - every non-/health route still requires the bearer token (set
+//     below) so only same-machine processes that know the secret can
+//     do anything beyond preflight
+// Tauri prod loads the UI from tauri:// (outside browser CORS).
+app.use('*', async (c, next) => {
+  c.res.headers.set('access-control-allow-origin', '*');
+  c.res.headers.set('access-control-allow-headers', 'authorization, content-type');
+  c.res.headers.set('access-control-allow-methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  if (c.req.method === 'OPTIONS') return c.body(null, 204);
+  return next();
+});
+
 // Bearer-token auth on every route except /health.
 app.use('*', async (c, next) => {
   if (c.req.path === '/health') return next();
@@ -19,22 +40,6 @@ app.use('*', async (c, next) => {
   if (token !== env.OPENTRADER_SIDECAR_TOKEN) {
     return c.json({ error: 'unauthorized' }, 401);
   }
-  return next();
-});
-
-// Permissive CORS for the dev frontend (Vite at :1420). Threat model:
-//   - sidecar binds to 127.0.0.1 (HOST default) so only loopback peers
-//     can reach it at all
-//   - every non-/health route requires the bearer token
-// Together these mean `*` access-control-allow-origin is OK in
-// practice — only same-machine processes that already know the
-// secret can call. Tauri prod loads the UI from tauri:// (outside
-// browser CORS).
-app.use('*', async (c, next) => {
-  c.res.headers.set('access-control-allow-origin', '*');
-  c.res.headers.set('access-control-allow-headers', 'authorization, content-type');
-  c.res.headers.set('access-control-allow-methods', 'GET,POST,DELETE,OPTIONS');
-  if (c.req.method === 'OPTIONS') return c.body(null, 204);
   return next();
 });
 

@@ -2,6 +2,7 @@ import type {
   Account,
   AccountBalances,
   AccountRef,
+  AssetClass,
   Broker,
   BrokerCapabilities,
   BrokerConnectOptions,
@@ -56,6 +57,19 @@ const INTERVAL_MAP: Record<CandleInterval, AlpacaTimeframe> = {
   '1M': '1Month',
 };
 
+/** Alpaca asset_class string → canonical AssetClass. Unknown values
+ *  fall back to 'equity' (with a debug-time log) so we never surface
+ *  a non-canonical string to widget code. */
+const ASSET_CLASS_MAP: Record<string, AssetClass> = {
+  us_equity: 'equity',
+  us_option: 'option',
+  crypto: 'crypto',
+};
+
+function mapAssetClass(raw: string): AssetClass {
+  return ASSET_CLASS_MAP[raw] ?? 'equity';
+}
+
 const ORDER_STATUS_MAP: Record<string, OrderStatus> = {
   new: 'open',
   accepted: 'open',
@@ -99,7 +113,17 @@ class AlpacaBroker implements Broker {
     await rest.getAccount(); // throws on bad creds
     this.creds = parsed;
     this.rest = rest;
-    await this.refreshDataFeeds();
+    // refreshDataFeeds is best-effort — a probe failure shouldn't fail
+    // the whole connect (the user is logged in either way), and we
+    // don't want to leave the broker in a half-connected state where
+    // isConnected() is true but feeds is empty.
+    try {
+      await this.refreshDataFeeds();
+    } catch (e) {
+      this.deps.log('warn', 'alpaca feed probe failed; defaulting to iex', {
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
     this.deps.log('info', 'alpaca connected', { paper: parsed.paper, feed: this.activeFeed });
   }
 
@@ -293,8 +317,7 @@ class AlpacaBroker implements Broker {
     const positions = await this.requireRest().listPositions();
     return positions.map((p) => ({
       symbol: p.symbol,
-      assetClass:
-        p.asset_class === 'us_equity' ? 'equity' : (p.asset_class as Position['assetClass']),
+      assetClass: mapAssetClass(p.asset_class),
       qty: p.qty,
       avgEntryPrice: p.avg_entry_price,
       marketValue: p.market_value,
@@ -389,14 +412,21 @@ class AlpacaBroker implements Broker {
   }
 
   private toCoreOrder(o: AlpacaOrder): Order {
+    // Alpaca occasionally returns side="" on system-generated orders
+    // (auto-liquidations, expirations, broker-side cleanups). Normalize
+    // unknown sides to 'buy' so the UI doesn't render an empty cell.
+    const side: Order['legs'][number]['side'] =
+      o.side === 'buy' || o.side === 'sell' || o.side === 'sell_short' || o.side === 'buy_to_cover'
+        ? o.side
+        : 'buy';
     return {
       id: o.id,
       account: { brokerId: this.id, accountId: 'self' },
       legs: [
         {
           symbol: o.symbol,
-          assetClass: 'equity',
-          side: o.side,
+          assetClass: mapAssetClass(o.asset_class),
+          side,
           ratio: 1,
         },
       ],

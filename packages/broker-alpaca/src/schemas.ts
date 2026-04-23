@@ -43,6 +43,11 @@ export const positionSchema = z.object({
 
 export type AlpacaPosition = z.infer<typeof positionSchema>;
 
+// All free-form strings — Alpaca occasionally returns "" for side /
+// asset_class on system-generated orders (e.g. auto-liquidations,
+// expirations). The adapter normalizes to canonical shapes via
+// mapAssetClass / status maps; the schema's only job is to keep the
+// other fields consistent across an array parse.
 export const orderSchema = z.object({
   id: z.string(),
   client_order_id: z.string().optional().nullable(),
@@ -53,7 +58,7 @@ export const orderSchema = z.object({
   filled_avg_price: numericString.nullable().optional(),
   limit_price: numericString.nullable().optional(),
   stop_price: numericString.nullable().optional(),
-  side: z.enum(['buy', 'sell']),
+  side: z.string(),
   order_type: z.string(),
   time_in_force: z.string(),
   status: z.string(),
@@ -129,30 +134,33 @@ export type AlpacaStockSnapshot = z.infer<typeof stockSnapshotSchema>;
 
 // ---- options schemas ----
 
+// Alpaca returns nulls (not just absent fields) for open_interest /
+// close_price on low-volume contracts that haven't traded recently.
+// All optional numeric / date fields use .nullish() so both
+// `undefined` and `null` parse cleanly.
+const numericNullish = z
+  .union([z.string(), z.number()])
+  .nullish()
+  .transform((v) => (v === undefined || v === null ? undefined : Number(v)));
+
 export const optionContractSchema = z.object({
   id: z.string(),
   symbol: z.string(),
-  name: z.string().optional(),
-  status: z.string().optional(),
-  tradable: z.boolean().optional(),
+  name: z.string().nullish(),
+  status: z.string().nullish(),
+  tradable: z.boolean().nullish(),
   expiration_date: z.string(),
   root_symbol: z.string(),
   underlying_symbol: z.string(),
-  underlying_asset_id: z.string().optional(),
+  underlying_asset_id: z.string().nullish(),
   type: z.enum(['call', 'put']),
-  style: z.enum(['american', 'european']).optional(),
+  style: z.enum(['american', 'european']).nullish(),
   strike_price: z.union([z.string(), z.number()]).transform((v) => Number(v)),
-  size: z.union([z.string(), z.number()]).optional(),
-  open_interest: z
-    .union([z.string(), z.number()])
-    .optional()
-    .transform((v) => (v === undefined ? undefined : Number(v))),
-  open_interest_date: z.string().optional(),
-  close_price: z
-    .union([z.string(), z.number()])
-    .optional()
-    .transform((v) => (v === undefined ? undefined : Number(v))),
-  close_price_date: z.string().optional(),
+  size: z.union([z.string(), z.number()]).nullish(),
+  open_interest: numericNullish,
+  open_interest_date: z.string().nullish(),
+  close_price: numericNullish,
+  close_price_date: z.string().nullish(),
 });
 
 export type AlpacaOptionContract = z.infer<typeof optionContractSchema>;

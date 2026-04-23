@@ -139,6 +139,29 @@ describe('AlpacaBroker', () => {
       await expect(broker.connect(VALID_CREDS)).rejects.toBeInstanceOf(AlpacaApiError);
       expect(broker.isConnected()).toBe(false);
     });
+
+    it('still finishes connect when refreshDataFeeds throws — broker stays connected on iex default', async () => {
+      // Account succeeds; the bars probe always 500s. connect() should
+      // log the warn but stay connected — partial connection is worse
+      // than no feeds.
+      vi.stubGlobal(
+        'fetch',
+        makeFetch([
+          {
+            test: (u) => u.pathname === '/v2/account',
+            respond: () => jsonResponse(ACCOUNT_FIXTURE),
+          },
+          {
+            test: (u) => u.pathname.includes('/bars'),
+            respond: () => new Response('boom', { status: 500 }),
+          },
+        ]),
+      );
+      const broker = createAlpacaBroker(makeDeps());
+      await broker.connect(VALID_CREDS);
+      expect(broker.isConnected()).toBe(true);
+      expect(broker.getActiveDataFeed?.()).toBe('iex');
+    });
   });
 
   describe('after connect', () => {
@@ -217,6 +240,43 @@ describe('AlpacaBroker', () => {
       });
       expect(positions[0]?.unrealizedPnL).toBe(100);
       expect(positions[0]?.dayPnL).toBe(20);
+    });
+
+    it('listOrders normalizes empty side ("") to "buy" and us_option → option', async () => {
+      // Alpaca occasionally returns side="" and asset_class="us_option"
+      // on system orders. Adapter must normalize without dropping.
+      const SYSTEM_ORDER = {
+        ...ORDER_FIXTURE,
+        id: 'sys-1',
+        side: '',
+        asset_class: 'us_option',
+        symbol: 'NVDA251219P00181000',
+        status: 'filled',
+      };
+      vi.stubGlobal(
+        'fetch',
+        makeFetch([
+          {
+            test: (u) => u.pathname === '/v2/account',
+            respond: () => jsonResponse(ACCOUNT_FIXTURE),
+          },
+          {
+            test: (u) => u.pathname.includes('/bars'),
+            respond: () =>
+              jsonResponse({
+                symbol: 'AAPL',
+                bars: [{ t: '2026-04-22T13:30:00Z', o: 1, h: 1, l: 1, c: 1, v: 1 }],
+              }),
+          },
+          { test: (u) => u.pathname === '/v2/orders', respond: () => jsonResponse([SYSTEM_ORDER]) },
+        ]),
+      );
+      const broker = createAlpacaBroker(makeDeps());
+      await broker.connect(VALID_CREDS);
+      const orders = await broker.listOrders({ brokerId: 'alpaca', accountId: 'A' });
+      expect(orders).toHaveLength(1);
+      expect(orders[0]?.legs[0]?.side).toBe('buy'); // normalized from ""
+      expect(orders[0]?.legs[0]?.assetClass).toBe('option'); // mapped from us_option
     });
 
     it('listOrders maps the Alpaca order to the canonical Order with mapped status', async () => {

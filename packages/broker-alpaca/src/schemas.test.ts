@@ -6,6 +6,7 @@ import {
   barsResponseSchema,
   latestQuoteSchema,
   latestTradeSchema,
+  optionContractSchema,
   orderSchema,
   positionSchema,
 } from './schemas';
@@ -88,6 +89,49 @@ describe('alpaca schemas', () => {
       trade: { t: '2026-04-23T15:00:00Z', p: 160.02, s: 50 },
     });
     expect(t.trade.p).toBe(160.02);
+  });
+
+  it('orderSchema accepts empty side / asset_class strings (system orders)', () => {
+    // Real shape from Alpaca for a system-generated order (empty side
+    // and asset_class on auto-liquidation/expiry orders).
+    const raw = {
+      id: 'sys-1',
+      symbol: 'NVDA',
+      asset_class: '',
+      qty: '0',
+      filled_qty: '0',
+      side: '',
+      order_type: 'market',
+      time_in_force: 'day',
+      status: 'expired',
+      extended_hours: false,
+      submitted_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+    };
+    const parsed = orderSchema.parse(raw);
+    expect(parsed.side).toBe('');
+    expect(parsed.asset_class).toBe('');
+  });
+
+  it('optionContractSchema accepts null on open_interest / close_price (illiquid contracts)', () => {
+    const raw = {
+      id: 'opt-1',
+      symbol: 'AAPL260424C00500000',
+      expiration_date: '2026-04-24',
+      root_symbol: 'AAPL',
+      underlying_symbol: 'AAPL',
+      type: 'call',
+      strike_price: '500',
+      open_interest: null,
+      open_interest_date: null,
+      close_price: null,
+      close_price_date: null,
+    };
+    const parsed = optionContractSchema.parse(raw);
+    expect(parsed.symbol).toBe('AAPL260424C00500000');
+    expect(parsed.strike_price).toBe(500);
+    expect(parsed.open_interest).toBeUndefined();
+    expect(parsed.close_price).toBeUndefined();
   });
 
   it('parses bars response and accepts null bars (no data window)', () => {

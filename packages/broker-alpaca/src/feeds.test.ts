@@ -5,7 +5,7 @@ import { AlpacaApiError, AlpacaRest } from './rest';
 
 const CREDS = { key: 'PKKEY', secret: 'PKSECRET', paper: true } as const;
 
-function makeFetch(behavior: Record<string, 'ok' | 403 | 500>): typeof fetch {
+function makeFetch(behavior: Record<string, 'ok' | 400 | 403 | 500>): typeof fetch {
   return vi.fn(async (input: URL | RequestInfo): Promise<Response> => {
     const url = typeof input === 'string' ? input : (input as URL | Request).toString();
     const u = new URL(url);
@@ -23,6 +23,13 @@ function makeFetch(behavior: Record<string, 'ok' | 403 | 500>): typeof fetch {
     if (verdict === 403) {
       return new Response('subscription does not permit querying recent SIP data', {
         status: 403,
+      });
+    }
+    if (verdict === 400) {
+      // Real Alpaca response when probing delayed_sip on /v2/stocks/<sym>/bars
+      return new Response(JSON.stringify({ message: 'invalid feed: delayed_sip' }), {
+        status: 400,
+        headers: { 'content-type': 'application/json' },
       });
     }
     return new Response('boom', { status: 500 });
@@ -63,8 +70,19 @@ describe('probeAlpacaFeeds', () => {
     expect(feeds.find((f) => f.id === 'sip')?.available).toBe(false);
   });
 
-  it('propagates non-403 errors so we do not silently mis-detect on a 500', async () => {
+  it('propagates 5xx errors so we do not silently mis-detect on a transient outage', async () => {
     vi.stubGlobal('fetch', makeFetch({ sip: 500, delayed_sip: 'ok', iex: 'ok' }));
     await expect(probeAlpacaFeeds(new AlpacaRest(CREDS))).rejects.toBeInstanceOf(AlpacaApiError);
+  });
+
+  it('treats 400 ("invalid feed") the same as 403 — feed marked unavailable', async () => {
+    // delayed_sip is a real Alpaca feed name, but it 400s on the bars
+    // endpoint specifically (it's only valid on /quotes/latest). The
+    // probe must not crash.
+    vi.stubGlobal('fetch', makeFetch({ sip: 'ok', delayed_sip: 400, iex: 'ok' }));
+    const feeds = await probeAlpacaFeeds(new AlpacaRest(CREDS));
+    expect(feeds.find((f) => f.id === 'delayed_sip')?.available).toBe(false);
+    expect(feeds.find((f) => f.id === 'sip')?.available).toBe(true);
+    expect(feeds.find((f) => f.isPreferred)?.id).toBe('sip');
   });
 });

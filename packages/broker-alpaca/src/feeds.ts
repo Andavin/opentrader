@@ -42,7 +42,10 @@ export async function probeAlpacaFeeds(rest: AlpacaRest): Promise<DataFeed[]> {
       await rest.getBars({ symbol: probeSymbol, timeframe: '1Day', start, end, limit: 1, feed });
       return true;
     } catch (e) {
-      if (e instanceof AlpacaApiError && e.status === 403) return false;
+      // 403 = subscription doesn't permit; 400 = feed name not accepted for
+      // this endpoint (e.g. `delayed_sip` is valid on /quotes/latest but
+      // 400s on /bars). Both mean "unavailable for our purposes".
+      if (e instanceof AlpacaApiError && (e.status === 403 || e.status === 400)) return false;
       throw e;
     }
   };
