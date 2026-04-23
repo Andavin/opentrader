@@ -224,10 +224,10 @@ describe('AlpacaBroker', () => {
       expect(q).toMatchObject({ symbol: 'AAPL', bid: 160, ask: 160.05, last: 160.02 });
     });
 
-    it('placeOrder rejects multi-leg in phase 1 and rejects non-equity', async () => {
+    it('placeOrder rejects multi-leg with non-option legs', async () => {
       const broker = await connected();
       const ref = { brokerId: 'alpaca' as const, accountId: 'acct-uuid' };
-      const multiLeg: OrderRequest = {
+      const mixedLegs: OrderRequest = {
         account: ref,
         legs: [
           { symbol: 'AAPL', assetClass: 'equity', side: 'buy' },
@@ -237,15 +237,48 @@ describe('AlpacaBroker', () => {
         qty: 1,
         timeInForce: 'day',
       };
-      await expect(broker.placeOrder(multiLeg)).rejects.toThrow(/multi-leg/);
-      const optionLeg: OrderRequest = {
-        account: ref,
-        legs: [{ symbol: 'AAPL241220C00150000', assetClass: 'option', side: 'buy' }],
+      await expect(broker.placeOrder(mixedLegs)).rejects.toThrow(/multi-leg.*option/i);
+    });
+
+    it('placeOrder rejects single-leg with unsupported asset class (e.g. crypto)', async () => {
+      const broker = await connected();
+      const cryptoLeg: OrderRequest = {
+        account: { brokerId: 'alpaca', accountId: 'acct-uuid' },
+        legs: [{ symbol: 'BTCUSD', assetClass: 'crypto', side: 'buy' }],
         orderType: 'market',
-        qty: 1,
+        qty: 0.01,
         timeInForce: 'day',
       };
-      await expect(broker.placeOrder(optionLeg)).rejects.toThrow(/equities/);
+      await expect(broker.placeOrder(cryptoLeg)).rejects.toThrow(/unsupported asset class/);
+    });
+
+    it('placeOrder accepts a single-leg option order (phase 3)', async () => {
+      const broker = await connected();
+      const order = await broker.placeOrder({
+        account: { brokerId: 'alpaca', accountId: 'acct-uuid' },
+        legs: [{ symbol: 'AAPL241220C00150000', assetClass: 'option', side: 'buy' }],
+        orderType: 'limit',
+        qty: 1,
+        limitPrice: 1.5,
+        timeInForce: 'day',
+      });
+      expect(order.id).toBe('order-1');
+    });
+
+    it('placeOrder rejects multi-leg market+stop order types', async () => {
+      const broker = await connected();
+      const stopMultileg: OrderRequest = {
+        account: { brokerId: 'alpaca', accountId: 'acct-uuid' },
+        legs: [
+          { symbol: 'AAPL241220C00150000', assetClass: 'option', side: 'buy' },
+          { symbol: 'AAPL241220C00160000', assetClass: 'option', side: 'sell' },
+        ],
+        orderType: 'stop',
+        qty: 1,
+        stopPrice: 1.0,
+        timeInForce: 'day',
+      };
+      await expect(broker.placeOrder(stopMultileg)).rejects.toThrow(/market or limit/);
     });
 
     it('placeOrder builds the Alpaca payload and round-trips through toCoreOrder', async () => {

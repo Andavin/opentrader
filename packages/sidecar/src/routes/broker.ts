@@ -130,6 +130,12 @@ app.get('/:brokerId/quote/:symbol', async (c) => {
   return c.json(await broker.getQuote(c.req.param('symbol')));
 });
 
+app.get('/:brokerId/snapshot/:symbol', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  if (!broker.getSnapshot) throw new HTTPBadRequest('broker has no snapshot support');
+  return c.json(await broker.getSnapshot(c.req.param('symbol')));
+});
+
 app.get('/:brokerId/candles', async (c) => {
   const broker = brokerOr404(c.req.param('brokerId'));
   const q = candlesQuerySchema.parse(Object.fromEntries(new URL(c.req.url).searchParams));

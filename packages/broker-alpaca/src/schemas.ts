@@ -104,3 +104,78 @@ export const barsResponseSchema = z.object({
 });
 
 export type AlpacaBar = z.infer<typeof barSchema>;
+
+// ---- snapshot schema ----
+
+const dailyBarSchema = z.object({
+  t: z.string(),
+  o: z.number(),
+  h: z.number(),
+  l: z.number(),
+  c: z.number(),
+  v: z.number(),
+});
+
+export const stockSnapshotSchema = z.object({
+  symbol: z.string().optional(),
+  latestTrade: z.object({ p: z.number(), s: z.number().optional(), t: z.string() }).optional(),
+  latestQuote: z.object({ bp: z.number(), ap: z.number(), t: z.string() }).optional(),
+  minuteBar: dailyBarSchema.optional(),
+  dailyBar: dailyBarSchema.optional(),
+  prevDailyBar: dailyBarSchema.optional(),
+});
+
+export type AlpacaStockSnapshot = z.infer<typeof stockSnapshotSchema>;
+
+// ---- options schemas ----
+
+export const optionContractSchema = z.object({
+  id: z.string(),
+  symbol: z.string(),
+  name: z.string().optional(),
+  status: z.string().optional(),
+  tradable: z.boolean().optional(),
+  expiration_date: z.string(),
+  root_symbol: z.string(),
+  underlying_symbol: z.string(),
+  underlying_asset_id: z.string().optional(),
+  type: z.enum(['call', 'put']),
+  style: z.enum(['american', 'european']).optional(),
+  strike_price: z.union([z.string(), z.number()]).transform((v) => Number(v)),
+  size: z.union([z.string(), z.number()]).optional(),
+  open_interest: z.union([z.string(), z.number()]).optional().transform((v) => (v === undefined ? undefined : Number(v))),
+  open_interest_date: z.string().optional(),
+  close_price: z.union([z.string(), z.number()]).optional().transform((v) => (v === undefined ? undefined : Number(v))),
+  close_price_date: z.string().optional(),
+});
+
+export type AlpacaOptionContract = z.infer<typeof optionContractSchema>;
+
+export const optionContractsResponseSchema = z.object({
+  option_contracts: z.array(optionContractSchema).default([]),
+  next_page_token: z.string().nullable().optional(),
+});
+
+export const optionSnapshotSchema = z.object({
+  latestQuote: z
+    .object({ bp: z.number(), ap: z.number(), bs: z.number().optional(), as: z.number().optional(), t: z.string() })
+    .optional(),
+  latestTrade: z.object({ p: z.number(), s: z.number().optional(), t: z.string() }).optional(),
+  greeks: z
+    .object({
+      delta: z.number().optional(),
+      gamma: z.number().optional(),
+      theta: z.number().optional(),
+      vega: z.number().optional(),
+      rho: z.number().optional(),
+    })
+    .optional(),
+  impliedVolatility: z.number().optional(),
+});
+
+export type AlpacaOptionSnapshot = z.infer<typeof optionSnapshotSchema>;
+
+export const optionSnapshotsResponseSchema = z.object({
+  snapshots: z.record(z.string(), optionSnapshotSchema).default({}),
+  next_page_token: z.string().nullable().optional(),
+});

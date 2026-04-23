@@ -5,12 +5,18 @@ import {
   barsResponseSchema,
   latestQuoteSchema,
   latestTradeSchema,
+  optionContractsResponseSchema,
+  optionSnapshotsResponseSchema,
   orderSchema,
   positionSchema,
+  stockSnapshotSchema,
   type AlpacaAccount,
   type AlpacaBar,
+  type AlpacaOptionContract,
+  type AlpacaOptionSnapshot,
   type AlpacaOrder,
   type AlpacaPosition,
+  type AlpacaStockSnapshot,
 } from './schemas';
 
 export interface AlpacaCredentials {
@@ -118,10 +124,33 @@ export class AlpacaRest {
     stop_price?: number;
     extended_hours?: boolean;
     client_order_id?: string;
+    order_class?: 'simple' | 'bracket' | 'oco' | 'oto';
+    take_profit?: { limit_price: number };
+    stop_loss?: { stop_price: number; limit_price?: number };
   }): Promise<AlpacaOrder> {
     return this.req(this.tradingBase, '/v2/orders', orderSchema, {
       method: 'POST',
       body: JSON.stringify(body),
+    });
+  }
+
+  /** Multi-leg options order (Alpaca's `mleg` order class). */
+  placeMlegOrder(body: {
+    qty: number;
+    type: 'market' | 'limit';
+    time_in_force: 'day' | 'gtc' | 'ioc' | 'fok' | 'opg' | 'cls';
+    limit_price?: number;
+    legs: Array<{
+      symbol: string;
+      ratio_qty: number;
+      side: 'buy' | 'sell';
+      position_intent: 'buy_to_open' | 'buy_to_close' | 'sell_to_open' | 'sell_to_close';
+    }>;
+    client_order_id?: string;
+  }): Promise<AlpacaOrder> {
+    return this.req(this.tradingBase, '/v2/orders', orderSchema, {
+      method: 'POST',
+      body: JSON.stringify({ order_class: 'mleg', ...body }),
     });
   }
 
@@ -149,6 +178,58 @@ export class AlpacaRest {
     const path = `/v2/stocks/${encodeURIComponent(symbol)}/trades/latest`;
     const res = await this.req(DATA_BASE, path, latestTradeSchema, { query: { feed } });
     return { price: res.trade.p, size: res.trade.s, asOf: res.trade.t };
+  }
+
+  async getStockSnapshot(symbol: string, feed: AlpacaFeedName): Promise<AlpacaStockSnapshot> {
+    const path = `/v2/stocks/${encodeURIComponent(symbol)}/snapshot`;
+    return this.req(DATA_BASE, path, stockSnapshotSchema, { query: { feed } });
+  }
+
+  async listOptionContracts(opts: {
+    underlying_symbol: string;
+    expiration_date?: string;
+    /** Filter to a specific date range — useful when chains have many expirations. */
+    expiration_date_gte?: string;
+    expiration_date_lte?: string;
+    type?: 'call' | 'put';
+    limit?: number;
+  }): Promise<AlpacaOptionContract[]> {
+    const all: AlpacaOptionContract[] = [];
+    let pageToken: string | undefined;
+    do {
+      const res = await this.req(this.tradingBase, '/v2/options/contracts', optionContractsResponseSchema, {
+        query: {
+          underlying_symbols: opts.underlying_symbol,
+          expiration_date: opts.expiration_date,
+          expiration_date_gte: opts.expiration_date_gte,
+          expiration_date_lte: opts.expiration_date_lte,
+          type: opts.type,
+          limit: opts.limit ?? 1000,
+          page_token: pageToken,
+        },
+      });
+      all.push(...res.option_contracts);
+      pageToken = res.next_page_token ?? undefined;
+    } while (pageToken && all.length < (opts.limit ?? Number.POSITIVE_INFINITY));
+    return all;
+  }
+
+  async getOptionSnapshots(symbols: string[]): Promise<Record<string, AlpacaOptionSnapshot>> {
+    if (symbols.length === 0) return {};
+    // Batch in chunks of 100 to stay within Alpaca's URL length limits.
+    const chunks: string[][] = [];
+    for (let i = 0; i < symbols.length; i += 100) chunks.push(symbols.slice(i, i + 100));
+    const merged: Record<string, AlpacaOptionSnapshot> = {};
+    for (const chunk of chunks) {
+      const res = await this.req(
+        DATA_BASE,
+        '/v1beta1/options/snapshots',
+        optionSnapshotsResponseSchema,
+        { query: { symbols: chunk.join(','), feed: 'indicative' } },
+      );
+      Object.assign(merged, res.snapshots);
+    }
+    return merged;
   }
 
   async getBars(opts: {

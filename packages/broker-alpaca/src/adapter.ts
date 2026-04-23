@@ -9,11 +9,14 @@ import type {
   Candle,
   CandleInterval,
   DataFeed,
+  OptionContract,
+  OptionsChain,
   Order,
   OrderRequest,
   OrderStatus,
   Position,
   Quote,
+  SymbolSnapshot,
   TimeInForce,
 } from '@opentrader/broker-core';
 import { z } from 'zod';
@@ -203,6 +206,68 @@ class AlpacaBroker implements Broker {
     };
   }
 
+  async getSnapshot(symbol: string): Promise<SymbolSnapshot> {
+    const rest = this.requireRest();
+    const snap = await rest.getStockSnapshot(symbol, this.activeFeed);
+    const last = snap.latestTrade?.p ?? snap.minuteBar?.c ?? snap.dailyBar?.c;
+    const prevClose = snap.prevDailyBar?.c;
+    const change = last != null && prevClose != null ? last - prevClose : undefined;
+    const changePct = change != null && prevClose ? change / prevClose : undefined;
+    return {
+      symbol,
+      last,
+      change,
+      changePct,
+      bid: snap.latestQuote?.bp,
+      ask: snap.latestQuote?.ap,
+      open: snap.dailyBar?.o,
+      high: snap.dailyBar?.h,
+      low: snap.dailyBar?.l,
+      prevClose,
+      volume: snap.dailyBar?.v,
+      prevVolume: snap.prevDailyBar?.v,
+      asOf: snap.latestTrade?.t ?? snap.dailyBar?.t ?? new Date().toISOString(),
+    };
+  }
+
+  async getOptionsChain(req: {
+    underlying: string;
+    expiration?: string;
+  }): Promise<OptionsChain> {
+    const rest = this.requireRest();
+    const contracts = await rest.listOptionContracts({
+      underlying_symbol: req.underlying,
+      expiration_date: req.expiration,
+    });
+    const snapshots = await rest.getOptionSnapshots(contracts.map((c) => c.symbol));
+    const expirations = [...new Set(contracts.map((c) => c.expiration_date))].sort();
+    const merged: OptionContract[] = contracts.map((c) => {
+      const snap = snapshots[c.symbol];
+      return {
+        symbol: c.symbol,
+        underlying: c.underlying_symbol,
+        expiration: c.expiration_date,
+        strike: c.strike_price,
+        type: c.type,
+        bid: snap?.latestQuote?.bp,
+        ask: snap?.latestQuote?.ap,
+        last: snap?.latestTrade?.p,
+        mark:
+          snap?.latestQuote?.bp != null && snap?.latestQuote?.ap != null
+            ? (snap.latestQuote.bp + snap.latestQuote.ap) / 2
+            : snap?.latestTrade?.p,
+        openInterest: c.open_interest,
+        iv: snap?.impliedVolatility,
+        delta: snap?.greeks?.delta,
+        gamma: snap?.greeks?.gamma,
+        theta: snap?.greeks?.theta,
+        vega: snap?.greeks?.vega,
+        rho: snap?.greeks?.rho,
+      };
+    });
+    return { underlying: req.underlying, expirations, contracts: merged };
+  }
+
   async getCandles(req: {
     symbol: string;
     interval: CandleInterval;
@@ -249,15 +314,7 @@ class AlpacaBroker implements Broker {
   }
 
   async placeOrder(req: OrderRequest): Promise<Order> {
-    if (req.legs.length !== 1) {
-      throw new Error('multi-leg orders land in phase 3');
-    }
-    const leg = req.legs[0]!;
-    if (leg.assetClass !== 'equity') {
-      throw new Error('only equities supported in phase 1');
-    }
-    const side = leg.side === 'buy' ? 'buy' : leg.side === 'sell' ? 'sell' : null;
-    if (!side) throw new Error(`unsupported side ${leg.side} for alpaca`);
+    const rest = this.requireRest();
     const tifMap: Record<TimeInForce, 'day' | 'gtc' | 'ioc' | 'fok' | 'opg' | 'cls'> = {
       day: 'day',
       gtc: 'gtc',
@@ -266,15 +323,64 @@ class AlpacaBroker implements Broker {
       opg: 'opg',
       cls: 'cls',
     };
-    const placed = await this.requireRest().placeOrder({
-      symbol: leg.symbol,
+
+    if (req.legs.length === 1) {
+      const leg = req.legs[0]!;
+      if (leg.assetClass !== 'equity' && leg.assetClass !== 'option') {
+        throw new Error(`unsupported asset class for alpaca: ${leg.assetClass}`);
+      }
+      const side = leg.side === 'buy' ? 'buy' : leg.side === 'sell' ? 'sell' : null;
+      if (!side) throw new Error(`unsupported side ${leg.side} for alpaca`);
+      const placed = await rest.placeOrder({
+        symbol: leg.symbol,
+        qty: req.qty,
+        side,
+        type: req.orderType,
+        time_in_force: tifMap[req.timeInForce],
+        limit_price: req.limitPrice,
+        stop_price: req.stopPrice,
+        extended_hours: req.extendedHours,
+        client_order_id: req.clientOrderId,
+        order_class: req.bracket ? 'bracket' : undefined,
+        take_profit: req.bracket?.takeProfitPrice
+          ? { limit_price: req.bracket.takeProfitPrice }
+          : undefined,
+        stop_loss: req.bracket?.stopLossPrice
+          ? {
+              stop_price: req.bracket.stopLossPrice,
+              limit_price: req.bracket.stopLossLimit,
+            }
+          : undefined,
+      });
+      return this.toCoreOrder(placed);
+    }
+
+    // Multi-leg: must all be options, market or limit, no bracket
+    if (req.legs.some((l) => l.assetClass !== 'option')) {
+      throw new Error('alpaca multi-leg orders must all be option legs');
+    }
+    if (req.orderType !== 'market' && req.orderType !== 'limit') {
+      throw new Error('alpaca multi-leg orders only support market or limit type');
+    }
+    if (req.bracket) {
+      throw new Error('bracket orders are not supported on multi-leg in alpaca');
+    }
+    const placed = await rest.placeMlegOrder({
       qty: req.qty,
-      side,
       type: req.orderType,
       time_in_force: tifMap[req.timeInForce],
       limit_price: req.limitPrice,
-      stop_price: req.stopPrice,
-      extended_hours: req.extendedHours,
+      legs: req.legs.map((l) => {
+        const side = l.side === 'buy' ? 'buy' : 'sell';
+        // Default to opening intent — UI can override later.
+        const intent = side === 'buy' ? 'buy_to_open' : 'sell_to_open';
+        return {
+          symbol: l.symbol,
+          ratio_qty: l.ratio ?? 1,
+          side,
+          position_intent: intent,
+        };
+      }),
       client_order_id: req.clientOrderId,
     });
     return this.toCoreOrder(placed);
