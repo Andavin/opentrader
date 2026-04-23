@@ -46,12 +46,38 @@ describe('workspace store', () => {
     });
   });
 
-  it('order-ticket and connect-modal openers store the seed value', () => {
+  it('order-ticket and connect-modal openers store the draft value', () => {
     const { openOrderTicket, openConnectModal } = useWorkspaceStore.getState();
-    openOrderTicket({ symbol: 'AAPL', side: 'buy', limitPrice: 150 });
+    openOrderTicket({
+      legs: [{ symbol: 'AAPL', assetClass: 'equity', side: 'buy' }],
+      orderType: 'limit',
+      limitPrice: 150,
+    });
     openConnectModal('alpaca');
     const s = useWorkspaceStore.getState();
-    expect(s.orderTicketOpen).toEqual({ symbol: 'AAPL', side: 'buy', limitPrice: 150 });
+    expect(s.orderTicketOpen?.legs).toHaveLength(1);
+    expect(s.orderTicketOpen?.limitPrice).toBe(150);
     expect(s.connectModalOpen).toBe('alpaca');
+  });
+
+  it('appendOrderTicketLeg adds a leg (opening the ticket if closed) and stores option snapshot', () => {
+    const { appendOrderTicketLeg } = useWorkspaceStore.getState();
+    appendOrderTicketLeg(
+      { symbol: 'AAPL241220C00150000', assetClass: 'option', side: 'buy', ratio: 1 },
+      { delta: 0.5, theta: -0.04 },
+    );
+    const s = useWorkspaceStore.getState();
+    expect(s.orderTicketOpen?.legs).toHaveLength(1);
+    expect(s.optionLegSnapshots['AAPL241220C00150000']).toEqual({ delta: 0.5, theta: -0.04 });
+  });
+
+  it('removeOrderTicketLeg pulls a leg by index and closes the ticket when last is removed', () => {
+    const { appendOrderTicketLeg, removeOrderTicketLeg } = useWorkspaceStore.getState();
+    appendOrderTicketLeg({ symbol: 'A', assetClass: 'option', side: 'buy', ratio: 1 });
+    appendOrderTicketLeg({ symbol: 'B', assetClass: 'option', side: 'sell', ratio: 1 });
+    removeOrderTicketLeg(0);
+    expect(useWorkspaceStore.getState().orderTicketOpen?.legs.map((l) => l.symbol)).toEqual(['B']);
+    removeOrderTicketLeg(0);
+    expect(useWorkspaceStore.getState().orderTicketOpen).toBeNull();
   });
 });

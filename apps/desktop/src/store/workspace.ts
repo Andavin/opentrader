@@ -1,4 +1,10 @@
-import type { AccountRef, BrokerId, CandleInterval } from '@opentrader/broker-core';
+import type {
+  AccountRef,
+  BrokerId,
+  CandleInterval,
+  OrderLeg,
+  OrderType,
+} from '@opentrader/broker-core';
 import { create } from 'zustand';
 
 export type Aura = 'regular' | 'extended' | 'profit' | 'loss' | 'focus';
@@ -10,11 +16,18 @@ export interface ActiveAccount {
   name: string;
 }
 
-export interface OrderTicketSeed {
-  symbol: string;
-  side: 'buy' | 'sell';
-  /** Pre-fill the limit price (e.g. clicking the bid populates a sell limit). */
+/**
+ * Order-ticket draft state. Ticket is open iff this is non-null. Legs
+ * accumulate as the user clicks bid/ask in an Options Chain widget;
+ * adapters reject mixed equity+option leg sets but the UI calls them
+ * out before submission.
+ */
+export interface OrderTicketDraft {
+  legs: OrderLeg[];
+  orderType?: OrderType;
+  /** Net debit (positive = pay) / credit (negative = receive) limit. */
   limitPrice?: number;
+  qty?: number;
 }
 
 interface WorkspaceState {
@@ -26,7 +39,17 @@ interface WorkspaceState {
   chartInterval: CandleInterval;
   aura: Aura;
   connectModalOpen: BrokerId | null;
-  orderTicketOpen: OrderTicketSeed | null;
+  orderTicketOpen: OrderTicketDraft | null;
+  /**
+   * Per-leg snapshot cache populated when a leg is added from the
+   * Options Chain widget so the ticket can show net Greeks without
+   * re-fetching. Stale snapshots are tolerated; they refresh on next
+   * chain reload.
+   */
+  optionLegSnapshots: Record<
+    string,
+    { delta?: number; gamma?: number; theta?: number; vega?: number; iv?: number }
+  >;
   setActiveSymbol: (symbol: string | null) => void;
   setActiveAccount: (account: ActiveAccount) => void;
   setDataBroker: (id: BrokerId) => void;
@@ -35,7 +58,14 @@ interface WorkspaceState {
   removeFromWatchlist: (symbol: string) => void;
   setAura: (aura: Aura) => void;
   openConnectModal: (id: BrokerId | null) => void;
-  openOrderTicket: (seed: OrderTicketSeed | null) => void;
+  openOrderTicket: (draft: OrderTicketDraft | null) => void;
+  /** Append a leg to the open ticket (or open with this single leg). */
+  appendOrderTicketLeg: (
+    leg: OrderLeg,
+    snapshot?: { delta?: number; gamma?: number; theta?: number; vega?: number; iv?: number },
+  ) => void;
+  /** Remove a leg by its index in the legs array; closes the ticket if empty. */
+  removeOrderTicketLeg: (index: number) => void;
 }
 
 const DEMO_ACCOUNT: ActiveAccount = {
@@ -54,19 +84,40 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   aura: 'regular',
   connectModalOpen: null,
   orderTicketOpen: null,
+  optionLegSnapshots: {},
   setActiveSymbol: (activeSymbol) => set({ activeSymbol }),
   setActiveAccount: (activeAccount) => set({ activeAccount }),
   setDataBroker: (dataBroker) => set({ dataBroker }),
   setChartInterval: (chartInterval) => set({ chartInterval }),
   addToWatchlist: (symbol) =>
     set((s) =>
-      s.watchlist.includes(symbol) ? s : { watchlist: [...s.watchlist, symbol.toUpperCase()] },
+      s.watchlist.includes(symbol.toUpperCase())
+        ? s
+        : { watchlist: [...s.watchlist, symbol.toUpperCase()] },
     ),
   removeFromWatchlist: (symbol) =>
     set((s) => ({ watchlist: s.watchlist.filter((x) => x !== symbol) })),
   setAura: (aura) => set({ aura }),
   openConnectModal: (connectModalOpen) => set({ connectModalOpen }),
   openOrderTicket: (orderTicketOpen) => set({ orderTicketOpen }),
+  appendOrderTicketLeg: (leg, snapshot) =>
+    set((s) => {
+      const current = s.orderTicketOpen ?? { legs: [] };
+      const nextSnaps = snapshot
+        ? { ...s.optionLegSnapshots, [leg.symbol]: snapshot }
+        : s.optionLegSnapshots;
+      return {
+        orderTicketOpen: { ...current, legs: [...current.legs, leg] },
+        optionLegSnapshots: nextSnaps,
+      };
+    }),
+  removeOrderTicketLeg: (index) =>
+    set((s) => {
+      if (!s.orderTicketOpen) return {};
+      const next = s.orderTicketOpen.legs.filter((_, i) => i !== index);
+      if (next.length === 0) return { orderTicketOpen: null };
+      return { orderTicketOpen: { ...s.orderTicketOpen, legs: next } };
+    }),
 }));
 
 /**

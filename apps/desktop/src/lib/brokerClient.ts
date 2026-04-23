@@ -7,10 +7,12 @@ import type {
   Candle,
   CandleInterval,
   DataFeed,
+  OptionsChain,
   Order,
   OrderRequest,
   Position,
   Quote,
+  SymbolSnapshot,
 } from '@opentrader/broker-core';
 
 import { sidecarFetch } from './sidecarClient';
@@ -81,5 +83,17 @@ export const brokerClient = {
 
   refreshDataFeed: (brokerId: BrokerId) =>
     sidecarFetch<DataFeedState>(`/broker/${brokerId}/data-feed/refresh`, { method: 'POST' }),
+
+  getSnapshot: (brokerId: BrokerId, symbol: string) =>
+    sidecarFetch<SymbolSnapshot>(`/broker/${brokerId}/snapshot/${encodeURIComponent(symbol)}`),
+
+  getOptionsChain: (
+    brokerId: BrokerId,
+    req: { underlying: string; expiration?: string },
+  ) =>
+    sidecarFetch<OptionsChain>(
+      `/broker/${brokerId}/options/${encodeURIComponent(req.underlying)}`,
+      { query: { expiration: req.expiration } },
+    ),
 };
 

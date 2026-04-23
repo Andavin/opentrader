@@ -59,8 +59,14 @@ export function PositionsWidget(_props: IDockviewPanelProps) {
                 onContextMenu={(e) => {
                   e.preventDefault();
                   openOrderTicket({
-                    symbol: p.symbol,
-                    side: p.qty >= 0 ? 'sell' : 'buy',
+                    legs: [
+                      {
+                        symbol: p.symbol,
+                        assetClass: 'equity',
+                        side: p.qty >= 0 ? 'sell' : 'buy',
+                      },
+                    ],
+                    orderType: 'limit',
                   });
                 }}
               >
@@ -85,8 +91,14 @@ export function PositionsWidget(_props: IDockviewPanelProps) {
                     onClick={(e) => {
                       e.stopPropagation();
                       openOrderTicket({
-                        symbol: p.symbol,
-                        side: p.qty >= 0 ? 'sell' : 'buy',
+                        legs: [
+                          {
+                            symbol: p.symbol,
+                            assetClass: 'equity',
+                            side: p.qty >= 0 ? 'sell' : 'buy',
+                          },
+                        ],
+                        orderType: 'limit',
                       });
                     }}
                   >

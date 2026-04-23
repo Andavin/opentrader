@@ -186,3 +186,115 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.order-ticket-submit.is-multi {
+  background: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.order-ticket-submit.is-multi:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+/* multi-leg legs list */
+
+.order-ticket-legs {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.order-ticket-leg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.order-ticket-leg-side {
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+}
+
+.order-ticket-leg-side.is-buy {
+  color: var(--price-up);
+  background: var(--price-up-soft);
+}
+
+.order-ticket-leg-side.is-sell {
+  color: var(--price-down);
+  background: var(--price-down-soft);
+}
+
+.order-ticket-leg-label {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.order-ticket-leg-remove {
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.order-ticket-leg-remove:hover {
+  background: var(--bg-active);
+  color: var(--danger);
+}
+
+.order-ticket-leg-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+.order-ticket-greeks {
+  margin: 4px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--border-subtle);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.order-ticket-greeks div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-ticket-greeks dt {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.order-ticket-greeks dd {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}

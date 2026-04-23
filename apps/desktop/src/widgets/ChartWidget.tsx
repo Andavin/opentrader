@@ -174,7 +174,13 @@ export function ChartWidget(_props: IDockviewPanelProps) {
           type="button"
           className="chart-trade-btn is-buy"
           disabled={!symbol}
-          onClick={() => symbol && openOrderTicket({ symbol, side: 'buy' })}
+          onClick={() =>
+            symbol &&
+            openOrderTicket({
+              legs: [{ symbol, assetClass: 'equity', side: 'buy' }],
+              orderType: 'limit',
+            })
+          }
         >
           Buy
         </button>
@@ -182,7 +188,13 @@ export function ChartWidget(_props: IDockviewPanelProps) {
           type="button"
           className="chart-trade-btn is-sell"
           disabled={!symbol}
-          onClick={() => symbol && openOrderTicket({ symbol, side: 'sell' })}
+          onClick={() =>
+            symbol &&
+            openOrderTicket({
+              legs: [{ symbol, assetClass: 'equity', side: 'sell' }],
+              orderType: 'limit',
+            })
+          }
         >
           Sell
         </button>

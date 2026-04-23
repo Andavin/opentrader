@@ -136,3 +136,30 @@ export function useCancelOrder() {
     },
   });
 }
+
+export function useSnapshot(brokerId: BrokerId, symbol: string | null, enabled = true) {
+  return useQuery({
+    queryKey: ['snapshot', brokerId, symbol],
+    queryFn: () => brokerClient.getSnapshot(brokerId, symbol!),
+    enabled: enabled && !!symbol,
+    refetchInterval: 5_000,
+    staleTime: 3_000,
+  });
+}
+
+export function useOptionsChain(
+  brokerId: BrokerId,
+  req: { underlying: string | null; expiration?: string },
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['options-chain', brokerId, req.underlying, req.expiration],
+    queryFn: () =>
+      brokerClient.getOptionsChain(brokerId, {
+        underlying: req.underlying!,
+        expiration: req.expiration,
+      }),
+    enabled: enabled && !!req.underlying,
+    staleTime: 30_000,
+  });
+}
