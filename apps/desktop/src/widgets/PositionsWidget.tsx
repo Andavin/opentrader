@@ -2,12 +2,12 @@ import type { IDockviewPanelProps } from 'dockview-react';
 
 import { fmtNum, fmtPct, fmtSignedUsd, fmtUsd, priceClass } from '../lib/format';
 import { useBrokerStatus, usePositions } from '../lib/queries';
-import { selectActiveAccountRef, useWorkspaceStore } from '../store/workspace';
+import { useActiveAccountRef, useWorkspaceStore } from '../store/workspace';
 
 import './PositionsWidget.css';
 
 export function PositionsWidget(_props: IDockviewPanelProps) {
-  const accountRef = useWorkspaceStore(selectActiveAccountRef);
+  const accountRef = useActiveAccountRef();
   const dataBroker = useWorkspaceStore((s) => s.dataBroker);
   const setActiveSymbol = useWorkspaceStore((s) => s.setActiveSymbol);
   const activeSymbol = useWorkspaceStore((s) => s.activeSymbol);

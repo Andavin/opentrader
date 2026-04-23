@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { useBalances, useBrokerStatus } from '../lib/queries';
 import { marketSession } from '../lib/marketClock';
-import { selectActiveAccountRef, useWorkspaceStore } from '../store/workspace';
+import { useActiveAccountRef, useWorkspaceStore } from '../store/workspace';
 
 /**
  * Side-effect-only component that auto-rotates the workspace aura.
@@ -16,7 +16,7 @@ import { selectActiveAccountRef, useWorkspaceStore } from '../store/workspace';
 export function AuraSync() {
   const setAura = useWorkspaceStore((s) => s.setAura);
   const aura = useWorkspaceStore((s) => s.aura);
-  const accountRef = useWorkspaceStore(selectActiveAccountRef);
+  const accountRef = useActiveAccountRef();
   const dataBroker = useWorkspaceStore((s) => s.dataBroker);
   const status = useBrokerStatus(dataBroker);
   const isConnected = status.data?.connected === true;

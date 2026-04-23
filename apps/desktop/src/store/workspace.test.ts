@@ -1,6 +1,12 @@
+import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { selectActiveAccountRef, selectWidgetBroker, useWorkspaceStore } from './workspace';
+import {
+  selectActiveAccountRef,
+  selectWidgetBroker,
+  useActiveAccountRef,
+  useWorkspaceStore,
+} from './workspace';
 
 const initial = useWorkspaceStore.getState();
 
@@ -99,5 +105,36 @@ describe('workspace store', () => {
     setWidgetDataSource('chart-2', 'fidelity');
     expect(selectWidgetBroker('chart-1')(useWorkspaceStore.getState())).toBe('robinhood');
     expect(selectWidgetBroker('chart-2')(useWorkspaceStore.getState())).toBe('fidelity');
+  });
+
+  it('useActiveAccountRef returns the SAME object reference across renders (no infinite loop)', () => {
+    // Regression: selectActiveAccountRef builds a fresh {brokerId,
+    // accountId} on every call. Passing it directly to useWorkspaceStore
+    // caused Object.is to fail every render, triggering an infinite
+    // store-rerender loop ("Maximum update depth exceeded"). The
+    // useShallow-wrapped hook fixes that.
+    useWorkspaceStore.setState({
+      activeAccount: { brokerId: 'alpaca', brokerLabel: 'alpaca', accountId: 'A1', name: 'Ind' },
+    });
+    const { result, rerender } = renderHook(() => useActiveAccountRef());
+    const first = result.current;
+    rerender();
+    rerender();
+    rerender();
+    expect(result.current).toBe(first);
+  });
+
+  it('useActiveAccountRef updates when the active account actually changes', () => {
+    const { result } = renderHook(() => useActiveAccountRef());
+    expect(result.current).toBeNull();
+    act(() => {
+      useWorkspaceStore.getState().setActiveAccount({
+        brokerId: 'alpaca',
+        brokerLabel: 'alpaca',
+        accountId: 'A1',
+        name: 'Ind',
+      });
+    });
+    expect(result.current).toEqual({ brokerId: 'alpaca', accountId: 'A1' });
   });
 });

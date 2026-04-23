@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 
 import { fmtNum, fmtUsd } from '../lib/format';
 import { useBrokerStatus, useCancelOrder, useOrders } from '../lib/queries';
-import { selectActiveAccountRef, useWorkspaceStore } from '../store/workspace';
+import { useActiveAccountRef, useWorkspaceStore } from '../store/workspace';
 
 import './OrdersWidget.css';
 
@@ -36,7 +36,7 @@ function fmtTime(iso: string): string {
 }
 
 export function OrdersWidget(_props: IDockviewPanelProps) {
-  const accountRef = useWorkspaceStore(selectActiveAccountRef);
+  const accountRef = useActiveAccountRef();
   const setActiveSymbol = useWorkspaceStore((s) => s.setActiveSymbol);
   const activeSymbol = useWorkspaceStore((s) => s.activeSymbol);
   const dataBroker = useWorkspaceStore((s) => s.dataBroker);

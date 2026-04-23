@@ -3,13 +3,13 @@ import { ArrowDown, ArrowUp, Plug } from 'lucide-react';
 
 import { fmtPct, fmtSignedUsd, fmtUsd, priceClass } from '../lib/format';
 import { useBalances, useBrokerStatus } from '../lib/queries';
-import { selectActiveAccountRef, useWorkspaceStore } from '../store/workspace';
+import { useActiveAccountRef, useWorkspaceStore } from '../store/workspace';
 
 import './AccountSummaryWidget.css';
 
 export function AccountSummaryWidget(_props: IDockviewPanelProps) {
   const account = useWorkspaceStore((s) => s.activeAccount);
-  const accountRef = useWorkspaceStore(selectActiveAccountRef);
+  const accountRef = useActiveAccountRef();
   const dataBroker = useWorkspaceStore((s) => s.dataBroker);
   const openConnectModal = useWorkspaceStore((s) => s.openConnectModal);
   const status = useBrokerStatus(dataBroker);

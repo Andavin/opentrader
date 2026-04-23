@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { fmtNum, fmtSignedUsd, fmtUsd } from '../lib/format';
 import { formatOcc } from '../lib/occ';
 import { usePlaceOrder, useQuote } from '../lib/queries';
-import { selectActiveAccountRef, useWorkspaceStore } from '../store/workspace';
+import { useActiveAccountRef, useWorkspaceStore } from '../store/workspace';
 
 import './OrderTicketModal.css';
 
@@ -39,7 +39,7 @@ export function OrderTicketModal() {
   const close = useWorkspaceStore((s) => s.openOrderTicket);
   const removeLeg = useWorkspaceStore((s) => s.removeOrderTicketLeg);
   const snapshots = useWorkspaceStore((s) => s.optionLegSnapshots);
-  const accountRef = useWorkspaceStore(selectActiveAccountRef);
+  const accountRef = useActiveAccountRef();
   const dataBroker = useWorkspaceStore((s) => s.dataBroker);
 
   const [orderType, setOrderType] = useState<OrderType>('limit');

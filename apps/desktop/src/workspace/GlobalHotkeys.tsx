@@ -3,7 +3,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 
 import { HOTKEY_BY_ID } from '../lib/hotkeys';
 import { useBrokerStatus, usePlaceOrder, usePositions, useQuote } from '../lib/queries';
-import { selectActiveAccountRef, useWorkspaceStore } from '../store/workspace';
+import { useActiveAccountRef, useWorkspaceStore } from '../store/workspace';
 import { ShortcutsModal } from './ShortcutsModal';
 
 /**
@@ -12,7 +12,7 @@ import { ShortcutsModal } from './ShortcutsModal';
  */
 export function GlobalHotkeys() {
   const symbol = useWorkspaceStore((s) => s.activeSymbol);
-  const accountRef = useWorkspaceStore(selectActiveAccountRef);
+  const accountRef = useActiveAccountRef();
   const dataBroker = useWorkspaceStore((s) => s.dataBroker);
   const closeOrderTicket = useWorkspaceStore((s) => s.openOrderTicket);
   const closeConnectModal = useWorkspaceStore((s) => s.openConnectModal);

@@ -6,6 +6,7 @@ import type {
   OrderType,
 } from '@opentrader/broker-core';
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 
 export type Aura = 'regular' | 'extended' | 'profit' | 'loss' | 'focus';
 
@@ -139,8 +140,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
 
 /**
  * Selector that returns the active account as an `AccountRef` only when
- * a real broker is wired in (i.e. not the demo placeholder). Widgets
- * can pass the result straight to broker hooks without narrowing.
+ * a real broker is wired in (i.e. not the demo placeholder). Exported
+ * for tests; **components must use `useActiveAccountRef()`** below to
+ * get useShallow semantics — calling this through `useWorkspaceStore`
+ * directly causes an infinite re-render (returns a fresh object each
+ * call → Object.is says "changed" → store-rerender loop).
  */
 export function selectActiveAccountRef(state: WorkspaceState): AccountRef | null {
   if (state.activeAccount.brokerId === 'demo') return null;
@@ -148,6 +152,13 @@ export function selectActiveAccountRef(state: WorkspaceState): AccountRef | null
     brokerId: state.activeAccount.brokerId,
     accountId: state.activeAccount.accountId,
   };
+}
+
+/** Component-facing hook that wraps `selectActiveAccountRef` with
+ *  `useShallow` so a freshly-built `{brokerId, accountId}` doesn't
+ *  trip the snapshot-equality check on every render. */
+export function useActiveAccountRef(): AccountRef | null {
+  return useWorkspaceStore(useShallow(selectActiveAccountRef));
 }
 
 /**
