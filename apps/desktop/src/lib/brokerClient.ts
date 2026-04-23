@@ -6,6 +6,7 @@ import type {
   BrokerId,
   Candle,
   CandleInterval,
+  DataFeed,
   Order,
   OrderRequest,
   Position,
@@ -19,6 +20,11 @@ export interface BrokerStatus {
   label: string;
   capabilities: BrokerCapabilities;
   connected: boolean;
+}
+
+export interface DataFeedState {
+  feeds: DataFeed[];
+  active: string;
 }
 
 export const brokerClient = {
@@ -63,4 +69,17 @@ export const brokerClient = {
     brokerId: BrokerId,
     req: { symbol: string; interval: CandleInterval; from: number; to: number },
   ) => sidecarFetch<Candle[]>(`/broker/${brokerId}/candles`, { query: req }),
+
+  getDataFeed: (brokerId: BrokerId) =>
+    sidecarFetch<DataFeedState>(`/broker/${brokerId}/data-feed`),
+
+  setDataFeed: (brokerId: BrokerId, feed: string) =>
+    sidecarFetch<{ active: string }>(`/broker/${brokerId}/data-feed`, {
+      method: 'POST',
+      body: JSON.stringify({ feed }),
+    }),
+
+  refreshDataFeed: (brokerId: BrokerId) =>
+    sidecarFetch<DataFeedState>(`/broker/${brokerId}/data-feed/refresh`, { method: 'POST' }),
 };
+

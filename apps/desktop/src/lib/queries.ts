@@ -1,5 +1,5 @@
 import type { BrokerId, CandleInterval } from '@opentrader/broker-core';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { brokerClient } from './brokerClient';
 
@@ -36,5 +36,37 @@ export function useCandles(
       }),
     enabled: !!req.symbol,
     staleTime: 30_000,
+  });
+}
+
+export function useDataFeed(brokerId: BrokerId, enabled = true) {
+  return useQuery({
+    queryKey: ['data-feed', brokerId],
+    queryFn: () => brokerClient.getDataFeed(brokerId),
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
+export function useSetDataFeed(brokerId: BrokerId) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (feed: string) => brokerClient.setDataFeed(brokerId, feed),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['data-feed', brokerId] });
+      // Bust quote/candle caches so widgets refetch through the new feed.
+      queryClient.invalidateQueries({ queryKey: ['quote', brokerId] });
+      queryClient.invalidateQueries({ queryKey: ['candles', brokerId] });
+    },
+  });
+}
+
+export function useRefreshDataFeed(brokerId: BrokerId) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => brokerClient.refreshDataFeed(brokerId),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['data-feed', brokerId], data);
+    },
   });
 }
