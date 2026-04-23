@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AccountSync } from './AccountSync';
 import { AuraSync } from './AuraSync';
 import { ConnectAlpacaModal } from './ConnectAlpacaModal';
+import { GlobalHotkeys } from './GlobalHotkeys';
 import { OrderTicketModal } from './OrderTicketModal';
 import { TopBar } from './TopBar';
 import { widgetComponents } from '../widgets/registry';
@@ -59,6 +60,7 @@ export function Workspace() {
       </div>
       <ConnectAlpacaModal />
       <OrderTicketModal />
+      <GlobalHotkeys />
     </div>
   );
 }
