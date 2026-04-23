@@ -9,21 +9,23 @@
   border-collapse: collapse;
   font-size: 12px;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .positions-table th {
-  padding: 6px 10px;
+  padding: 5px 8px;
   text-align: right;
   color: var(--text-muted);
   font-weight: 500;
-  font-size: 10px;
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border-subtle);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
   background: var(--bg-elevated);
   position: sticky;
   top: 0;
   z-index: 1;
+  white-space: nowrap;
 }
 
 .positions-table th:first-child {
@@ -31,9 +33,10 @@
 }
 
 .positions-table td {
-  padding: 6px 10px;
+  padding: 5px 8px;
   text-align: right;
   border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
 }
 
 .positions-table td:first-child {
@@ -42,7 +45,7 @@
 
 .positions-table tbody tr {
   cursor: pointer;
-  transition: background 100ms ease;
+  transition: background 80ms ease;
 }
 
 .positions-table tbody tr:hover {
@@ -55,18 +58,19 @@
 
 .positions-symbol {
   font-weight: 600;
+  font-size: 12px;
 }
 
 .positions-row-actions button {
   background: transparent;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
   color: var(--text-secondary);
-  padding: 2px 8px;
-  font-size: 10px;
+  padding: 1px 7px;
+  font-size: 9px;
   border-radius: 3px;
   cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .positions-row-actions button:hover {
@@ -77,7 +81,7 @@
 
 .positions-empty,
 .positions-empty-row {
-  padding: 36px;
+  padding: 28px;
   text-align: center;
   color: var(--text-muted);
   font-size: 12px;

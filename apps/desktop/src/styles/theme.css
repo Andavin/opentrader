@@ -2,46 +2,52 @@
  * opentrader theme tokens — extracted from Robinhood Legend reference shots.
  * Tokens are CSS variables so the "auras" feature can swap palette by
  * trading session / P&L without touching components.
+ *
+ * Surface colors are deliberately near-black with neutral hue (no warm
+ * purple tint). Auras add the only color cast and only as a faint
+ * radial overlay (see Workspace.css .workspace-aura).
  */
 
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Inter', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
 }
 
 :root {
   color-scheme: dark;
 
-  --bg-base: #0d0c0e;
-  --bg-elevated: #161217;
-  --bg-panel: #1c181f;
-  --bg-hover: #221d24;
-  --bg-active: #2a242c;
-  --bg-input: #15121a;
+  /* Near-black neutrals — match Legend's true-dark feel. */
+  --bg-base: #050507;
+  --bg-elevated: #0c0c0e;
+  --bg-panel: #0a0a0c;
+  --bg-hover: #16161a;
+  --bg-active: #1f1f24;
+  --bg-input: #0f0f12;
 
-  --border-subtle: #211c25;
-  --border: #2d2730;
-  --border-strong: #443c4a;
+  --border-subtle: #131316;
+  --border: #1d1d22;
+  --border-strong: #2d2d34;
 
-  --text-primary: #f0ecef;
-  --text-secondary: #b8b1be;
-  --text-muted: #7e7686;
-  --text-disabled: #4d4753;
+  --text-primary: #f5f4f6;
+  --text-secondary: #a8a6ad;
+  --text-muted: #6f6c75;
+  --text-disabled: #43414a;
 
+  /* Slightly muted Robinhood orange, softer for the dark surfaces. */
   --accent: #ff5000;
   --accent-hover: #ff6a1e;
   --accent-pressed: #e64600;
   --accent-text: #ffffff;
-  --accent-soft: color-mix(in oklab, var(--accent) 18%, transparent);
+  --accent-soft: color-mix(in oklab, var(--accent) 16%, transparent);
 
   --price-up: #00c805;
-  --price-up-soft: color-mix(in oklab, var(--price-up) 18%, transparent);
+  --price-up-soft: color-mix(in oklab, var(--price-up) 14%, transparent);
   --price-down: #ff3b3b;
-  --price-down-soft: color-mix(in oklab, var(--price-down) 18%, transparent);
+  --price-down-soft: color-mix(in oklab, var(--price-down) 14%, transparent);
   --price-neutral: var(--text-secondary);
 
   --info: #4ea1ff;
@@ -49,22 +55,23 @@
   --danger: #ff3b3b;
   --success: var(--price-up);
 
-  --aura-from: rgba(255, 80, 0, 0.04);
+  /* Aura: regular session — almost imperceptible warm tint */
+  --aura-from: rgba(255, 80, 0, 0.025);
   --aura-to: rgba(255, 80, 0, 0);
 }
 
 [data-aura='extended'] {
-  --aura-from: rgba(78, 161, 255, 0.05);
+  --aura-from: rgba(78, 161, 255, 0.04);
   --aura-to: rgba(78, 161, 255, 0);
 }
 
 [data-aura='profit'] {
-  --aura-from: rgba(0, 200, 5, 0.05);
+  --aura-from: rgba(0, 200, 5, 0.04);
   --aura-to: rgba(0, 200, 5, 0);
 }
 
 [data-aura='loss'] {
-  --aura-from: rgba(255, 59, 59, 0.06);
+  --aura-from: rgba(255, 59, 59, 0.05);
   --aura-to: rgba(255, 59, 59, 0);
 }
 
