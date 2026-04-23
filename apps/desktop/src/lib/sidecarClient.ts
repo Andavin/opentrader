@@ -39,12 +39,21 @@ export async function sidecarFetch<T>(
     },
   });
   const text = await res.text();
-  const body: unknown = text.length ? JSON.parse(text) : undefined;
+  let body: unknown = undefined;
+  if (text.length) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      // Server returned a non-JSON body (Hono error before the JSON
+      // formatter ran, or a CDN/proxy in the way). Treat as raw text.
+      body = text;
+    }
+  }
   if (!res.ok) {
     const msg =
       typeof body === 'object' && body && 'error' in body && typeof body.error === 'string'
         ? body.error
-        : `${res.status} ${res.statusText}`;
+        : `${res.status} ${res.statusText || 'Request failed'}`;
     throw new SidecarError(msg, res.status, body);
   }
   return body as T;

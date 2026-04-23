@@ -1,8 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /**
- * Debounce a side-effecting callback. Returns a stable wrapper that
- * resets the timer each time it's invoked; the latest call wins.
+ * Debounce a side-effecting callback. The returned wrapper has stable
+ * identity across renders for a given `delayMs` (useCallback) and
+ * always calls the latest `fn` value (refs). Each invocation resets
+ * the timer; the last call wins. The pending timer is cleared on
+ * unmount.
  */
 export function useDebouncedCallback<Args extends unknown[]>(
   fn: (...args: Args) => void,
@@ -18,8 +21,11 @@ export function useDebouncedCallback<Args extends unknown[]>(
     };
   }, []);
 
-  return (...args: Args) => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => fnRef.current(...args), delayMs);
-  };
+  return useCallback(
+    (...args: Args) => {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => fnRef.current(...args), delayMs);
+    },
+    [delayMs],
+  );
 }

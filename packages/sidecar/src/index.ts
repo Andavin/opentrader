@@ -22,8 +22,14 @@ app.use('*', async (c, next) => {
   return next();
 });
 
-// Permissive CORS for the dev frontend (Vite at :1420). Tauri prod builds
-// load the UI from a tauri:// origin so this is only relevant in dev.
+// Permissive CORS for the dev frontend (Vite at :1420). Threat model:
+//   - sidecar binds to 127.0.0.1 (HOST default) so only loopback peers
+//     can reach it at all
+//   - every non-/health route requires the bearer token
+// Together these mean `*` access-control-allow-origin is OK in
+// practice — only same-machine processes that already know the
+// secret can call. Tauri prod loads the UI from tauri:// (outside
+// browser CORS).
 app.use('*', async (c, next) => {
   c.res.headers.set('access-control-allow-origin', '*');
   c.res.headers.set('access-control-allow-headers', 'authorization, content-type');
