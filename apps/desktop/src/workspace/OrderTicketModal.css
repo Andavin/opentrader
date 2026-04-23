@@ -270,6 +270,20 @@
   margin: 4px 0 0;
 }
 
+.order-ticket-bracket {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+}
+
+.order-ticket-bracket .order-ticket-field span {
+  font-size: 9px;
+}
+
 .order-ticket-greeks {
   margin: 4px 0 0;
   padding: 10px 0 0;

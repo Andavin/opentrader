@@ -2,6 +2,7 @@ import { DockviewReact, type DockviewApi, type DockviewReadyEvent } from 'dockvi
 import { useState } from 'react';
 
 import { AccountSync } from './AccountSync';
+import { AuraSync } from './AuraSync';
 import { ConnectAlpacaModal } from './ConnectAlpacaModal';
 import { OrderTicketModal } from './OrderTicketModal';
 import { TopBar } from './TopBar';
@@ -45,6 +46,7 @@ export function Workspace() {
   return (
     <div className="workspace-root">
       <AccountSync />
+      <AuraSync />
       <TopBar dockviewApi={api} />
       <div className="workspace-aura" aria-hidden />
       <div className="workspace-dock">

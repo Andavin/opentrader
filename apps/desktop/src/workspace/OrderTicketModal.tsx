@@ -49,6 +49,11 @@ export function OrderTicketModal() {
   const [tif, setTif] = useState<TimeInForce>('day');
   const [extendedHours, setExtendedHours] = useState(false);
   const [equitySide, setEquitySide] = useState<Side>('buy');
+  // Bracket / OCO — single-equity only on Alpaca.
+  const [bracketOn, setBracketOn] = useState(false);
+  const [takeProfit, setTakeProfit] = useState('');
+  const [stopLoss, setStopLoss] = useState('');
+  const [stopLossLimit, setStopLossLimit] = useState('');
 
   const isSingleEquity = !!draft && draft.legs.length === 1 && draft.legs[0]!.assetClass === 'equity';
   const isMultiLeg = !!draft && draft.legs.length > 1;
@@ -121,6 +126,18 @@ export function OrderTicketModal() {
     const legs: OrderLeg[] = isSingleEquity
       ? [{ ...draft.legs[0]!, side: equitySide }]
       : draft.legs;
+    const tpNum = Number(takeProfit);
+    const slNum = Number(stopLoss);
+    const sllNum = Number(stopLossLimit);
+    const bracket =
+      isSingleEquity && bracketOn
+        ? {
+            takeProfitPrice: Number.isFinite(tpNum) && tpNum > 0 ? tpNum : undefined,
+            stopLossPrice: Number.isFinite(slNum) && slNum > 0 ? slNum : undefined,
+            stopLossLimit:
+              Number.isFinite(sllNum) && sllNum > 0 ? sllNum : undefined,
+          }
+        : undefined;
     const req: OrderRequest = {
       account: accountRef,
       legs,
@@ -130,6 +147,7 @@ export function OrderTicketModal() {
       stopPrice: needsStop ? stopNum : undefined,
       timeInForce: tif,
       extendedHours: isSingleEquity ? extendedHours : undefined,
+      bracket,
     };
     placeOrder.mutate(req, { onSuccess: () => close(null) });
   }
@@ -280,14 +298,61 @@ export function OrderTicketModal() {
             </label>
           )}
           {isSingleEquity && (
-            <label className="order-ticket-checkbox">
-              <input
-                type="checkbox"
-                checked={extendedHours}
-                onChange={(e) => setExtendedHours(e.target.checked)}
-              />
-              <span>Allow extended-hours fill</span>
-            </label>
+            <>
+              <label className="order-ticket-checkbox">
+                <input
+                  type="checkbox"
+                  checked={extendedHours}
+                  onChange={(e) => setExtendedHours(e.target.checked)}
+                />
+                <span>Allow extended-hours fill</span>
+              </label>
+              <label className="order-ticket-checkbox">
+                <input
+                  type="checkbox"
+                  checked={bracketOn}
+                  onChange={(e) => setBracketOn(e.target.checked)}
+                />
+                <span>Add bracket / OCO (take-profit + stop-loss)</span>
+              </label>
+              {bracketOn && (
+                <div className="order-ticket-bracket">
+                  <label className="order-ticket-field">
+                    <span>Take-profit limit</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={takeProfit}
+                      onChange={(e) => setTakeProfit(e.target.value)}
+                      placeholder="—"
+                    />
+                  </label>
+                  <label className="order-ticket-field">
+                    <span>Stop-loss stop</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={stopLoss}
+                      onChange={(e) => setStopLoss(e.target.value)}
+                      placeholder="—"
+                    />
+                  </label>
+                  <label className="order-ticket-field">
+                    <span>Stop-loss limit (optional)</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={stopLossLimit}
+                      onChange={(e) => setStopLossLimit(e.target.value)}
+                      placeholder="—"
+                    />
+                  </label>
+                </div>
+              )}
+            </>
           )}
 
           {netGreeks && (
