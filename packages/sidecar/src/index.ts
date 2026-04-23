@@ -1,9 +1,11 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 
+import { getDb } from './db';
 import { env } from './env';
 import { createLogger } from './logger';
 import brokerRoutes from './routes/broker';
+import layoutRoutes from './routes/layouts';
 import { listBrokerIds } from './registry';
 
 const log = createLogger('sidecar');
@@ -33,6 +35,11 @@ app.use('*', async (c, next) => {
 app.get('/health', (c) => c.json({ ok: true, brokers: listBrokerIds() }));
 
 app.route('/broker', brokerRoutes);
+app.route('/layouts', layoutRoutes);
+
+// Open the SQLite db eagerly so the CREATE-IF-NOT-EXISTS migration runs
+// on startup instead of on first layout save.
+getDb();
 
 const server = serve({ fetch: app.fetch, hostname: env.HOST, port: env.PORT });
 

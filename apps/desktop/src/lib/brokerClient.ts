@@ -97,3 +97,24 @@ export const brokerClient = {
     ),
 };
 
+export interface SavedLayout {
+  id: string;
+  name: string;
+  position: number;
+  iconName?: string | null;
+  dockviewState: Record<string, unknown>;
+  updatedAt?: string | number;
+}
+
+export const layoutsClient = {
+  list: () => sidecarFetch<SavedLayout[]>('/layouts'),
+  get: (id: string) => sidecarFetch<SavedLayout>(`/layouts/${id}`),
+  save: (id: string, body: Omit<SavedLayout, 'id' | 'updatedAt'>) =>
+    sidecarFetch<SavedLayout>(`/layouts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+  delete: (id: string) =>
+    sidecarFetch<{ deleted: true }>(`/layouts/${id}`, { method: 'DELETE' }),
+};
+

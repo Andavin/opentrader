@@ -17,7 +17,10 @@
     "@opentrader/broker-core": "workspace:*",
     "@opentrader/broker-fidelity": "workspace:*",
     "@opentrader/broker-robinhood": "workspace:*",
+    "@opentrader/db": "workspace:*",
+    "better-sqlite3": "12.9.0",
     "dotenv": "17.4.2",
+    "drizzle-orm": "0.45.2",
     "hono": "4.12.14",
     "ws": "8.20.0",
     "zod": "4.3.6"
