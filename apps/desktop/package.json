@@ -10,7 +10,9 @@
     "dev": "tauri dev",
     "build": "tauri build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@opentrader/broker-core": "workspace:*",
