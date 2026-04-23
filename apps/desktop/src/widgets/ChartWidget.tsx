@@ -12,8 +12,9 @@ import { useEffect, useRef } from 'react';
 
 import { brokerClient } from '../lib/brokerClient';
 import { useBrokerStatus } from '../lib/queries';
-import { selectWidgetBroker, useWorkspaceStore } from '../store/workspace';
+import { selectChartIndicators, selectWidgetBroker, useWorkspaceStore } from '../store/workspace';
 import { DataSourcePicker } from '../workspace/DataSourcePicker';
+import { CANDLE_PANE_ID, ChartIndicatorsMenu } from './ChartIndicatorsMenu';
 
 import './ChartWidget.css';
 
@@ -110,6 +111,11 @@ export function ChartWidget(props: IDockviewPanelProps) {
   intervalRef.current = interval;
   brokerRef.current = dataBroker;
 
+  // Snapshot the persisted indicators at mount time so we can seed the chart.
+  // We read from the store directly (not via hook) to avoid a reactive dep
+  // on the init effect — the menu component owns live sync after mount.
+  const panelId = props.api.id;
+
   // Init / dispose chart
   useEffect(() => {
     const el = containerRef.current;
@@ -117,7 +123,18 @@ export function ChartWidget(props: IDockviewPanelProps) {
     const chart = init(el);
     if (!chart) return;
     chartRef.current = chart;
-    chart.createIndicator('VOL', false, { id: 'pane-volume' });
+
+    // Seed indicators from the persisted list.  selectChartIndicators returns
+    // DEFAULT_CHART_INDICATORS (['VOL']) when no panel entry exists yet.
+    const savedIndicators = selectChartIndicators(panelId)(useWorkspaceStore.getState());
+    for (const name of savedIndicators) {
+      const isOverlay = ['MA', 'EMA', 'SMA', 'BOLL', 'VWAP', 'SAR'].includes(name);
+      if (isOverlay) {
+        chart.createIndicator(name, true, { id: CANDLE_PANE_ID });
+      } else {
+        chart.createIndicator(name, false);
+      }
+    }
     chart.setStyles({
       grid: { horizontal: { color: '#211c25' }, vertical: { color: '#211c25' } },
       candle: {
@@ -215,6 +232,7 @@ export function ChartWidget(props: IDockviewPanelProps) {
             </button>
           ))}
         </div>
+        <ChartIndicatorsMenu panelId={panelId} chartRef={chartRef} />
         <span className="chart-toolbar-spacer" />
         <DataSourcePicker panelId={props.api.id} />
       </div>

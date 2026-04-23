@@ -2,7 +2,9 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
+  DEFAULT_CHART_INDICATORS,
   selectActiveAccountRef,
+  selectChartIndicators,
   selectWidgetBroker,
   useActiveAccountRef,
   useWorkspaceStore,
@@ -105,6 +107,57 @@ describe('workspace store', () => {
     setWidgetDataSource('chart-2', 'fidelity');
     expect(selectWidgetBroker('chart-1')(useWorkspaceStore.getState())).toBe('robinhood');
     expect(selectWidgetBroker('chart-2')(useWorkspaceStore.getState())).toBe('fidelity');
+  });
+
+  describe('chartIndicators', () => {
+    it('selectChartIndicators returns DEFAULT_CHART_INDICATORS for unknown panel', () => {
+      expect(selectChartIndicators('chart-99')(useWorkspaceStore.getState())).toEqual(
+        DEFAULT_CHART_INDICATORS,
+      );
+    });
+
+    it('setChartIndicators stores the list keyed by panel id', () => {
+      const { setChartIndicators } = useWorkspaceStore.getState();
+      setChartIndicators('chart-1', ['VOL', 'RSI', 'MACD']);
+      expect(selectChartIndicators('chart-1')(useWorkspaceStore.getState())).toEqual([
+        'VOL',
+        'RSI',
+        'MACD',
+      ]);
+    });
+
+    it('setChartIndicators is panel-scoped — different panels keep independent lists', () => {
+      const { setChartIndicators } = useWorkspaceStore.getState();
+      setChartIndicators('chart-1', ['VOL', 'RSI']);
+      setChartIndicators('chart-2', ['MACD', 'BOLL']);
+      expect(selectChartIndicators('chart-1')(useWorkspaceStore.getState())).toEqual([
+        'VOL',
+        'RSI',
+      ]);
+      expect(selectChartIndicators('chart-2')(useWorkspaceStore.getState())).toEqual([
+        'MACD',
+        'BOLL',
+      ]);
+    });
+
+    it('setChartIndicators with empty array removes all indicators for that panel', () => {
+      const { setChartIndicators } = useWorkspaceStore.getState();
+      setChartIndicators('chart-1', ['VOL', 'RSI']);
+      setChartIndicators('chart-1', []);
+      expect(selectChartIndicators('chart-1')(useWorkspaceStore.getState())).toEqual([]);
+    });
+
+    it('adding then removing an indicator updates the list correctly', () => {
+      const { setChartIndicators } = useWorkspaceStore.getState();
+      setChartIndicators('chart-1', ['VOL', 'RSI']);
+      // simulate toggle-off of RSI
+      const before = selectChartIndicators('chart-1')(useWorkspaceStore.getState());
+      setChartIndicators(
+        'chart-1',
+        before.filter((n) => n !== 'RSI'),
+      );
+      expect(selectChartIndicators('chart-1')(useWorkspaceStore.getState())).toEqual(['VOL']);
+    });
   });
 
   it('useActiveAccountRef returns the SAME object reference across renders (no infinite loop)', () => {

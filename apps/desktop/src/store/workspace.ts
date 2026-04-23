@@ -58,6 +58,11 @@ interface WorkspaceState {
    * pulling charts from Alpaca's higher-quality feed.
    */
   widgetDataSources: Record<string, BrokerId>;
+  /**
+   * Per-panel active chart indicators. Keyed by dockview panel id.
+   * New panels default to ['VOL'] to preserve existing behaviour.
+   */
+  chartIndicators: Record<string, string[]>;
   setActiveSymbol: (symbol: string | null) => void;
   setActiveAccount: (account: ActiveAccount) => void;
   setDataBroker: (id: BrokerId) => void;
@@ -76,6 +81,8 @@ interface WorkspaceState {
   removeOrderTicketLeg: (index: number) => void;
   /** Set or clear a per-widget data-source override. */
   setWidgetDataSource: (panelId: string, brokerId: BrokerId | null) => void;
+  /** Replace the full indicator list for a single chart panel. */
+  setChartIndicators: (panelId: string, names: string[]) => void;
 }
 
 const DEMO_ACCOUNT: ActiveAccount = {
@@ -84,6 +91,8 @@ const DEMO_ACCOUNT: ActiveAccount = {
   accountId: 'demo-1',
   name: 'Individual',
 };
+
+export const DEFAULT_CHART_INDICATORS = ['VOL'];
 
 export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   activeSymbol: null,
@@ -96,6 +105,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   orderTicketOpen: null,
   optionLegSnapshots: {},
   widgetDataSources: {},
+  chartIndicators: {},
   setActiveSymbol: (activeSymbol) => set({ activeSymbol }),
   setActiveAccount: (activeAccount) => set({ activeAccount }),
   setDataBroker: (dataBroker) => set({ dataBroker }),
@@ -136,6 +146,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
       else next[panelId] = brokerId;
       return { widgetDataSources: next };
     }),
+  setChartIndicators: (panelId, names) =>
+    set((s) => ({ chartIndicators: { ...s.chartIndicators, [panelId]: names } })),
 }));
 
 /**
@@ -167,4 +179,13 @@ export function useActiveAccountRef(): AccountRef | null {
  */
 export function selectWidgetBroker(panelId: string) {
   return (state: WorkspaceState): BrokerId => state.widgetDataSources[panelId] ?? state.dataBroker;
+}
+
+/**
+ * Return the active indicator list for a chart panel; falls back to the
+ * default set so new panels get VOL without an explicit store write.
+ */
+export function selectChartIndicators(panelId: string) {
+  return (state: WorkspaceState): string[] =>
+    state.chartIndicators[panelId] ?? DEFAULT_CHART_INDICATORS;
 }
