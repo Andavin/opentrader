@@ -172,8 +172,12 @@ export function OrderTicketModal() {
   const headlineSymbol = isSingleEquity
     ? draft.legs[0]!.symbol
     : isMultiLeg
-      ? `${draft.legs.length}-leg ${draft.legs[0]?.symbol ? formatOcc(draft.legs[0]!.symbol).split(' ')[0] : ''}`
-      : (draft.legs[0]?.symbol ?? '—');
+      ? `${draft.legs.length}-leg ${
+          draft.legs[0]?.symbol ? (formatOcc(draft.legs[0]!.symbol).split(' ')[0] ?? '') : ''
+        }`
+      : draft.legs[0]
+        ? formatOcc(draft.legs[0].symbol)
+        : '—';
 
   return (
     <div className="modal-backdrop" onMouseDown={() => close(null)}>
@@ -408,7 +412,9 @@ export function OrderTicketModal() {
               <>
                 {isSingleEquity
                   ? `${equitySide === 'buy' ? 'Buy' : 'Sell'} ${headlineSymbol}`
-                  : `Submit ${draft.legs.length}-leg order`}
+                  : isMultiLeg
+                    ? `Submit ${draft.legs.length}-leg order`
+                    : `${draft.legs[0]!.side === 'buy' ? 'Buy' : 'Sell'} ${headlineSymbol}`}
                 <ArrowRight size={14} />
               </>
             )}

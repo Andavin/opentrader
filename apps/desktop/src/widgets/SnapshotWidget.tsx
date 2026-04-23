@@ -103,14 +103,14 @@ export function SnapshotWidget(props: IDockviewPanelProps) {
         )}
         {tab === 'volatility' && (
           <p className="snapshot-deferred">
-            Implied volatility, IV rank/percentile, term structure — wires in once we have OPRA
-            options data flowing through. Phase 3.5.
+            Implied volatility, IV rank/percentile, and term structure render once a connected
+            broker exposes options snapshots for this underlying.
           </p>
         )}
         {tab === 'fundamentals' && (
           <p className="snapshot-deferred">
-            P/E, EPS, market cap, ex-dividend date — Alpaca doesn't expose these directly. Will pull
-            from a free fundamentals provider in phase 7.
+            P/E, EPS, market cap, and ex-dividend date are sourced through a separate fundamentals
+            provider — connect one in Settings to populate this tab.
           </p>
         )}
       </div>
