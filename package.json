@@ -9,7 +9,9 @@
     "pnpm": ">=10"
   },
   "scripts": {
-    "dev": "pnpm --filter @opentrader/desktop dev",
+    "dev": "concurrently -n sidecar,tauri -c blue,magenta --kill-others-on-fail \"pnpm sidecar:dev\" \"pnpm tauri:dev\"",
+    "dev:web": "concurrently -n sidecar,vite -c blue,green --kill-others-on-fail \"pnpm sidecar:dev\" \"pnpm --filter @opentrader/desktop dev:vite\"",
+    "sidecar:dev": "pnpm --filter @opentrader/sidecar dev",
     "tauri": "pnpm --filter @opentrader/desktop tauri",
     "tauri:dev": "pnpm --filter @opentrader/desktop tauri dev",
     "tauri:build": "pnpm --filter @opentrader/desktop tauri build",
@@ -20,6 +22,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md,css}\""
   },
   "devDependencies": {
+    "concurrently": "9.2.1",
     "prettier": "3.8.3",
     "typescript": "6.0.3"
   }
