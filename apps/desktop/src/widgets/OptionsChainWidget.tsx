@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { fmtCompact, fmtNum, fmtUsd } from '../lib/format';
 import { useOptionsChain } from '../lib/queries';
-import { useWorkspaceStore } from '../store/workspace';
+import { selectWidgetBroker, useWorkspaceStore } from '../store/workspace';
+import { DataSourcePicker } from '../workspace/DataSourcePicker';
 
 import './OptionsChainWidget.css';
 
@@ -25,14 +26,14 @@ function groupByStrike(contracts: OptionContract[]): StrikeRow[] {
   return [...map.values()].sort((a, b) => a.strike - b.strike);
 }
 
-export function OptionsChainWidget(_props: IDockviewPanelProps) {
+export function OptionsChainWidget(props: IDockviewPanelProps) {
   const symbol = useWorkspaceStore((s) => s.activeSymbol);
-  const dataBroker = useWorkspaceStore((s) => s.dataBroker);
+  const broker = useWorkspaceStore(selectWidgetBroker(props.api.id));
   const appendLeg = useWorkspaceStore((s) => s.appendOrderTicketLeg);
 
   const [expiration, setExpiration] = useState<string | null>(null);
 
-  const chain = useOptionsChain(dataBroker, { underlying: symbol, expiration: expiration ?? undefined });
+  const chain = useOptionsChain(broker, { underlying: symbol, expiration: expiration ?? undefined });
 
   // Auto-pick the soonest expiration when the chain first loads / symbol changes.
   useEffect(() => {
@@ -97,6 +98,7 @@ export function OptionsChainWidget(_props: IDockviewPanelProps) {
         <span className="options-chain-status">
           {chain.isFetching ? 'loading…' : chain.error ? `error: ${(chain.error as Error).message}` : ''}
         </span>
+        <DataSourcePicker panelId={props.api.id} />
       </header>
 
       <div className="options-chain-grid">

@@ -3,7 +3,8 @@ import { useState } from 'react';
 
 import { fmtCompact, fmtPct, fmtSignedUsd, fmtUsd, priceClass } from '../lib/format';
 import { useSnapshot } from '../lib/queries';
-import { useWorkspaceStore } from '../store/workspace';
+import { selectWidgetBroker, useWorkspaceStore } from '../store/workspace';
+import { DataSourcePicker } from '../workspace/DataSourcePicker';
 
 import './SnapshotWidget.css';
 
@@ -15,10 +16,10 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'fundamentals', label: 'Fundamentals' },
 ];
 
-export function SnapshotWidget(_props: IDockviewPanelProps) {
+export function SnapshotWidget(props: IDockviewPanelProps) {
   const symbol = useWorkspaceStore((s) => s.activeSymbol);
-  const dataBroker = useWorkspaceStore((s) => s.dataBroker);
-  const snap = useSnapshot(dataBroker, symbol);
+  const broker = useWorkspaceStore(selectWidgetBroker(props.api.id));
+  const snap = useSnapshot(broker, symbol);
   const [tab, setTab] = useState<Tab>('summary');
 
   if (!symbol) {
@@ -39,6 +40,8 @@ export function SnapshotWidget(_props: IDockviewPanelProps) {
         <div className="snapshot-title">
           <span className="snapshot-symbol">{symbol}</span>
           {data?.name && <span className="snapshot-name">{data.name}</span>}
+          <span className="snapshot-spacer" />
+          <DataSourcePicker panelId={props.api.id} />
         </div>
         <div className="snapshot-price-row">
           <span className="snapshot-price tabular">{fmtUsd(data?.last)}</span>

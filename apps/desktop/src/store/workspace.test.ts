@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { selectActiveAccountRef, useWorkspaceStore } from './workspace';
+import { selectActiveAccountRef, selectWidgetBroker, useWorkspaceStore } from './workspace';
 
 const initial = useWorkspaceStore.getState();
 
@@ -79,5 +79,22 @@ describe('workspace store', () => {
     expect(useWorkspaceStore.getState().orderTicketOpen?.legs.map((l) => l.symbol)).toEqual(['B']);
     removeOrderTicketLeg(0);
     expect(useWorkspaceStore.getState().orderTicketOpen).toBeNull();
+  });
+
+  it('selectWidgetBroker returns the override or falls back to workspace default', () => {
+    const select = selectWidgetBroker('chart-1');
+    expect(select(useWorkspaceStore.getState())).toBe('alpaca');
+    useWorkspaceStore.getState().setWidgetDataSource('chart-1', 'robinhood');
+    expect(select(useWorkspaceStore.getState())).toBe('robinhood');
+    useWorkspaceStore.getState().setWidgetDataSource('chart-1', null);
+    expect(select(useWorkspaceStore.getState())).toBe('alpaca');
+  });
+
+  it('setWidgetDataSource is panel-scoped — different panels keep independent overrides', () => {
+    const { setWidgetDataSource } = useWorkspaceStore.getState();
+    setWidgetDataSource('chart-1', 'robinhood');
+    setWidgetDataSource('chart-2', 'fidelity');
+    expect(selectWidgetBroker('chart-1')(useWorkspaceStore.getState())).toBe('robinhood');
+    expect(selectWidgetBroker('chart-2')(useWorkspaceStore.getState())).toBe('fidelity');
   });
 });

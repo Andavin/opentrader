@@ -50,6 +50,13 @@ interface WorkspaceState {
     string,
     { delta?: number; gamma?: number; theta?: number; vega?: number; iv?: number }
   >;
+  /**
+   * Per-widget data-source override. Maps a dockview panel id to a
+   * specific broker; widgets fall back to `dataBroker` when no override
+   * is set. Lets you (e.g.) keep account-positions on Robinhood while
+   * pulling charts from Alpaca's higher-quality feed.
+   */
+  widgetDataSources: Record<string, BrokerId>;
   setActiveSymbol: (symbol: string | null) => void;
   setActiveAccount: (account: ActiveAccount) => void;
   setDataBroker: (id: BrokerId) => void;
@@ -66,6 +73,8 @@ interface WorkspaceState {
   ) => void;
   /** Remove a leg by its index in the legs array; closes the ticket if empty. */
   removeOrderTicketLeg: (index: number) => void;
+  /** Set or clear a per-widget data-source override. */
+  setWidgetDataSource: (panelId: string, brokerId: BrokerId | null) => void;
 }
 
 const DEMO_ACCOUNT: ActiveAccount = {
@@ -85,6 +94,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   connectModalOpen: null,
   orderTicketOpen: null,
   optionLegSnapshots: {},
+  widgetDataSources: {},
   setActiveSymbol: (activeSymbol) => set({ activeSymbol }),
   setActiveAccount: (activeAccount) => set({ activeAccount }),
   setDataBroker: (dataBroker) => set({ dataBroker }),
@@ -118,6 +128,13 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
       if (next.length === 0) return { orderTicketOpen: null };
       return { orderTicketOpen: { ...s.orderTicketOpen, legs: next } };
     }),
+  setWidgetDataSource: (panelId, brokerId) =>
+    set((s) => {
+      const next = { ...s.widgetDataSources };
+      if (brokerId === null) delete next[panelId];
+      else next[panelId] = brokerId;
+      return { widgetDataSources: next };
+    }),
 }));
 
 /**
@@ -131,4 +148,13 @@ export function selectActiveAccountRef(state: WorkspaceState): AccountRef | null
     brokerId: state.activeAccount.brokerId,
     accountId: state.activeAccount.accountId,
   };
+}
+
+/**
+ * Resolve which broker a widget should pull data from: its per-panel
+ * override if set, else the workspace default.
+ */
+export function selectWidgetBroker(panelId: string) {
+  return (state: WorkspaceState): BrokerId =>
+    state.widgetDataSources[panelId] ?? state.dataBroker;
 }

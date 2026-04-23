@@ -32,6 +32,10 @@
   color: var(--text-muted);
 }
 
+.snapshot-spacer {
+  flex: 1;
+}
+
 .snapshot-price-row {
   display: flex;
   align-items: baseline;
