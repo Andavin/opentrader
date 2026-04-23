@@ -206,3 +206,33 @@ export interface DataFeed {
   /** True if this is the highest-quality available feed. */
   isPreferred?: boolean;
 }
+
+/**
+ * Compact, broker-agnostic symbol summary used by the Snapshot widget
+ * (Robinhood Legend's right-rail panel: price + change + day OHLCV +
+ * prev close, plus optional logo / name / company description when the
+ * adapter has them).
+ */
+export interface SymbolSnapshot {
+  symbol: string;
+  /** Display name / company name when available (else echo symbol). */
+  name?: string;
+  /** Issuer description / business summary. */
+  description?: string;
+  exchange?: string;
+  /** Last trade price. */
+  last?: number;
+  /** Net change vs prevClose. */
+  change?: number;
+  changePct?: number;
+  bid?: number;
+  ask?: number;
+  open?: number;
+  high?: number;
+  low?: number;
+  prevClose?: number;
+  volume?: number;
+  /** Previous-day volume — useful for relative volume display. */
+  prevVolume?: number;
+  asOf: string;
+}

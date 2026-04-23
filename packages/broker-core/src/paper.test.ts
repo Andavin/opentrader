@@ -1,11 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { Broker, BrokerCapabilities } from './broker';
 import type {
   Account,
   AccountBalances,
   AccountRef,
-  Broker,
-  BrokerCapabilities,
   Candle,
   DataFeed,
   Order,

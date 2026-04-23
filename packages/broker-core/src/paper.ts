@@ -10,6 +10,7 @@ import type {
   OptionsChain,
   Position,
   Quote,
+  SymbolSnapshot,
 } from './types';
 
 /**
@@ -26,6 +27,7 @@ export class PaperBroker implements Broker {
     underlying: string;
     expiration?: string;
   }) => Promise<OptionsChain>;
+  readonly getSnapshot?: (symbol: string) => Promise<SymbolSnapshot>;
   readonly listDataFeeds?: () => DataFeed[];
   readonly getActiveDataFeed?: () => string;
   readonly setActiveDataFeed?: (feedId: string) => void;
@@ -40,6 +42,9 @@ export class PaperBroker implements Broker {
     }
     if (inner.getOptionsChain) {
       this.getOptionsChain = inner.getOptionsChain.bind(inner);
+    }
+    if (inner.getSnapshot) {
+      this.getSnapshot = inner.getSnapshot.bind(inner);
     }
     if (inner.listDataFeeds) {
       this.listDataFeeds = inner.listDataFeeds.bind(inner);

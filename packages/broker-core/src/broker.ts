@@ -11,6 +11,7 @@ import type {
   OptionsChain,
   Position,
   Quote,
+  SymbolSnapshot,
 } from './types';
 
 /**
@@ -31,9 +32,16 @@ export interface BrokerCapabilities {
   interactiveLogin: boolean;
 }
 
+/**
+ * Open-ended connect options bag — each adapter narrows the shape it
+ * actually expects (Alpaca needs key+secret; Robinhood needs none and
+ * pops a Playwright window). The index signature lets callers pass
+ * adapter-specific fields without a cast.
+ */
 export interface BrokerConnectOptions {
   /** Forces re-auth even if a stored session exists. */
   forceLogin?: boolean;
+  [key: string]: unknown;
 }
 
 /**
@@ -65,6 +73,7 @@ export interface Broker {
     from: number;
     to: number;
   }): Promise<Candle[]>;
+  getSnapshot?(symbol: string): Promise<SymbolSnapshot>;
   getOptionsChain?(req: { underlying: string; expiration?: string }): Promise<OptionsChain>;
 
   // trading
