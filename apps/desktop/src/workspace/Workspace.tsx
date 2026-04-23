@@ -6,6 +6,7 @@ import { useDebouncedCallback } from '../lib/useDebounce';
 import { AccountSync } from './AccountSync';
 import { AuraSync } from './AuraSync';
 import { ConnectAlpacaModal } from './ConnectAlpacaModal';
+import { ErrorBoundary } from './ErrorBoundary';
 import { GlobalHotkeys } from './GlobalHotkeys';
 import { OrderTicketModal } from './OrderTicketModal';
 import { TopBar } from './TopBar';
@@ -43,6 +44,21 @@ function seedDefaultPanels(api: DockviewApi): void {
   });
 }
 
+/** Empty out dockview before re-seeding. Used after a corrupt restore
+ *  so panel-id collisions don't bubble back as further errors. Snapshot
+ *  the panels array first — removePanel mutates it during iteration. */
+function safeClear(api: DockviewApi): void {
+  const snapshot = [...api.panels];
+  for (const panel of snapshot) {
+    try {
+      api.removePanel(panel);
+    } catch {
+      // best-effort — keep going so a single bad panel doesn't block
+      // the rest of the cleanup
+    }
+  }
+}
+
 export function Workspace() {
   const [api, setApi] = useState<DockviewApi | null>(null);
   /** True once we've finished initial load — prevents the first render
@@ -70,8 +86,18 @@ export function Workspace() {
     void (async () => {
       try {
         const saved = await layoutsClient.get(DEFAULT_LAYOUT_ID);
-        // dockview accepts the same shape it produces from toJSON.
-        event.api.fromJSON(saved.dockviewState as never);
+        try {
+          event.api.fromJSON(saved.dockviewState as never);
+        } catch (restoreErr) {
+          // Saved layout is corrupt or references components we no
+          // longer ship. Wipe it server-side so the next restart
+          // doesn't replay the same crash, then seed fresh defaults.
+          // eslint-disable-next-line no-console
+          console.warn('saved layout failed to restore; wiping', restoreErr);
+          await layoutsClient.delete(DEFAULT_LAYOUT_ID).catch(() => undefined);
+          safeClear(event.api);
+          seedDefaultPanels(event.api);
+        }
       } catch (err) {
         if (!(err instanceof SidecarError && err.status === 404)) {
           // eslint-disable-next-line no-console
@@ -93,23 +119,38 @@ export function Workspace() {
     return () => sub.dispose();
   }, [api, debouncedSave]);
 
+  // The error-boundary onReset handler — called when the user clicks
+  // "Reset and reload" after a crash. Wipes the persisted layout so
+  // the next mount can seed fresh defaults instead of replaying the
+  // bad state, then bounces the page.
+  const handleReset = useCallback(() => {
+    void layoutsClient
+      .delete(DEFAULT_LAYOUT_ID)
+      .catch(() => undefined)
+      .then(() => {
+        if (typeof window !== 'undefined') window.location.reload();
+      });
+  }, []);
+
   return (
-    <div className="workspace-root">
-      <AccountSync />
-      <AuraSync />
-      <TopBar dockviewApi={api} />
-      <div className="workspace-aura" aria-hidden />
-      <div className="workspace-dock">
-        <DockviewReact
-          className="opentrader-dockview"
-          components={widgetComponents}
-          onReady={onReady}
-          singleTabMode="fullwidth"
-        />
+    <ErrorBoundary scope="workspace" onReset={handleReset}>
+      <div className="workspace-root">
+        <AccountSync />
+        <AuraSync />
+        <TopBar dockviewApi={api} />
+        <div className="workspace-aura" aria-hidden />
+        <div className="workspace-dock">
+          <DockviewReact
+            className="opentrader-dockview"
+            components={widgetComponents}
+            onReady={onReady}
+            singleTabMode="fullwidth"
+          />
+        </div>
+        <ConnectAlpacaModal />
+        <OrderTicketModal />
+        <GlobalHotkeys />
       </div>
-      <ConnectAlpacaModal />
-      <OrderTicketModal />
-      <GlobalHotkeys />
-    </div>
+    </ErrorBoundary>
   );
 }
