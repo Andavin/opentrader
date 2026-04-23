@@ -1,0 +1,147 @@
+import { Hono } from 'hono';
+import { z } from 'zod';
+
+import { getBroker } from '../registry';
+
+const app = new Hono();
+
+const accountRefSchema = z.object({
+  brokerId: z.enum(['alpaca', 'robinhood', 'fidelity']),
+  accountId: z.string(),
+});
+
+const intervalSchema = z.enum(['1m', '2m', '5m', '15m', '30m', '1h', '2h', '4h', '1d', '1w', '1M']);
+
+const candlesQuerySchema = z.object({
+  symbol: z.string(),
+  interval: intervalSchema,
+  from: z.coerce.number().int(),
+  to: z.coerce.number().int(),
+});
+
+const orderRequestSchema = z.object({
+  account: accountRefSchema,
+  legs: z
+    .array(
+      z.object({
+        symbol: z.string(),
+        assetClass: z.enum(['equity', 'option', 'crypto', 'future']),
+        side: z.enum(['buy', 'sell', 'sell_short', 'buy_to_cover']),
+        ratio: z.number().int().positive().optional(),
+      }),
+    )
+    .min(1),
+  orderType: z.enum(['market', 'limit', 'stop', 'stop_limit', 'trailing_stop']),
+  qty: z.number().positive(),
+  limitPrice: z.number().optional(),
+  stopPrice: z.number().optional(),
+  trailAmount: z.number().optional(),
+  trailPercent: z.number().optional(),
+  timeInForce: z.enum(['day', 'gtc', 'ioc', 'fok', 'opg', 'cls']),
+  extendedHours: z.boolean().optional(),
+  bracket: z
+    .object({
+      takeProfitPrice: z.number().optional(),
+      stopLossPrice: z.number().optional(),
+      stopLossLimit: z.number().optional(),
+    })
+    .optional(),
+  clientOrderId: z.string().optional(),
+});
+
+function brokerOr404(id: string) {
+  const b = getBroker(id);
+  if (!b) throw new HTTPNotFound(`unknown broker: ${id}`);
+  return b;
+}
+
+class HTTPNotFound extends Error {}
+class HTTPBadRequest extends Error {}
+
+app.onError((err, c) => {
+  if (err instanceof HTTPNotFound) return c.json({ error: err.message }, 404);
+  if (err instanceof HTTPBadRequest) return c.json({ error: err.message }, 400);
+  if (err instanceof z.ZodError) return c.json({ error: 'validation', issues: err.issues }, 400);
+  return c.json({ error: err.message ?? 'internal' }, 500);
+});
+
+app.get('/:brokerId/status', (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  return c.json({
+    id: broker.id,
+    label: broker.label,
+    capabilities: broker.capabilities,
+    connected: broker.isConnected(),
+  });
+});
+
+app.post('/:brokerId/connect', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  // Adapter-specific: each broker validates its own credentials shape during connect().
+  await broker.connect(body);
+  return c.json({ connected: true });
+});
+
+app.post('/:brokerId/disconnect', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  await broker.disconnect();
+  return c.json({ connected: false });
+});
+
+app.get('/:brokerId/accounts', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  return c.json(await broker.listAccounts());
+});
+
+app.get('/:brokerId/balances/:accountId', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  const ref = { brokerId: broker.id, accountId: c.req.param('accountId') };
+  return c.json(await broker.getBalances(ref));
+});
+
+app.get('/:brokerId/positions/:accountId', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  const ref = { brokerId: broker.id, accountId: c.req.param('accountId') };
+  return c.json(await broker.listPositions(ref));
+});
+
+app.get('/:brokerId/orders/:accountId', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  const ref = { brokerId: broker.id, accountId: c.req.param('accountId') };
+  return c.json(await broker.listOrders(ref));
+});
+
+app.post('/:brokerId/orders', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  const req = orderRequestSchema.parse(await c.req.json());
+  return c.json(await broker.placeOrder(req));
+});
+
+app.post('/:brokerId/orders/:accountId/:orderId/cancel', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  const ref = { brokerId: broker.id, accountId: c.req.param('accountId') };
+  await broker.cancelOrder(ref, c.req.param('orderId'));
+  return c.json({ cancelled: true });
+});
+
+app.get('/:brokerId/quote/:symbol', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  return c.json(await broker.getQuote(c.req.param('symbol')));
+});
+
+app.get('/:brokerId/candles', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  const q = candlesQuerySchema.parse(Object.fromEntries(new URL(c.req.url).searchParams));
+  return c.json(await broker.getCandles(q));
+});
+
+app.get('/:brokerId/options/:underlying', async (c) => {
+  const broker = brokerOr404(c.req.param('brokerId'));
+  if (!broker.getOptionsChain) throw new HTTPBadRequest('broker has no options support');
+  const underlying = c.req.param('underlying');
+  const expiration = c.req.query('expiration') ?? undefined;
+  return c.json(await broker.getOptionsChain({ underlying, expiration }));
+});
+
+export default app;
