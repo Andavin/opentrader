@@ -1,4 +1,4 @@
-import type { BrokerId, CandleInterval } from '@opentrader/broker-core';
+import type { AccountRef, BrokerId, CandleInterval } from '@opentrader/broker-core';
 import { create } from 'zustand';
 
 export type Aura = 'regular' | 'extended' | 'profit' | 'loss' | 'focus';
@@ -10,6 +10,13 @@ export interface ActiveAccount {
   name: string;
 }
 
+export interface OrderTicketSeed {
+  symbol: string;
+  side: 'buy' | 'sell';
+  /** Pre-fill the limit price (e.g. clicking the bid populates a sell limit). */
+  limitPrice?: number;
+}
+
 interface WorkspaceState {
   activeSymbol: string | null;
   activeAccount: ActiveAccount;
@@ -19,6 +26,7 @@ interface WorkspaceState {
   chartInterval: CandleInterval;
   aura: Aura;
   connectModalOpen: BrokerId | null;
+  orderTicketOpen: OrderTicketSeed | null;
   setActiveSymbol: (symbol: string | null) => void;
   setActiveAccount: (account: ActiveAccount) => void;
   setDataBroker: (id: BrokerId) => void;
@@ -27,6 +35,7 @@ interface WorkspaceState {
   removeFromWatchlist: (symbol: string) => void;
   setAura: (aura: Aura) => void;
   openConnectModal: (id: BrokerId | null) => void;
+  openOrderTicket: (seed: OrderTicketSeed | null) => void;
 }
 
 const DEMO_ACCOUNT: ActiveAccount = {
@@ -44,6 +53,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   chartInterval: '1d',
   aura: 'regular',
   connectModalOpen: null,
+  orderTicketOpen: null,
   setActiveSymbol: (activeSymbol) => set({ activeSymbol }),
   setActiveAccount: (activeAccount) => set({ activeAccount }),
   setDataBroker: (dataBroker) => set({ dataBroker }),
@@ -56,4 +66,18 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
     set((s) => ({ watchlist: s.watchlist.filter((x) => x !== symbol) })),
   setAura: (aura) => set({ aura }),
   openConnectModal: (connectModalOpen) => set({ connectModalOpen }),
+  openOrderTicket: (orderTicketOpen) => set({ orderTicketOpen }),
 }));
+
+/**
+ * Selector that returns the active account as an `AccountRef` only when
+ * a real broker is wired in (i.e. not the demo placeholder). Widgets
+ * can pass the result straight to broker hooks without narrowing.
+ */
+export function selectActiveAccountRef(state: WorkspaceState): AccountRef | null {
+  if (state.activeAccount.brokerId === 'demo') return null;
+  return {
+    brokerId: state.activeAccount.brokerId,
+    accountId: state.activeAccount.accountId,
+  };
+}
