@@ -12,5 +12,21 @@ const schema = z.object({
   OPENTRADER_DATA_DIR: z.string().default('./.opentrader-data'),
 });
 
-export const env = schema.parse(process.env);
+const parsed = schema.safeParse(process.env);
+if (!parsed.success) {
+  // Friendly per-issue error so users don't see a raw Zod stack trace.
+  const lines = parsed.error.issues.map((i) => `  • ${i.path.join('.') || '<root>'}: ${i.message}`);
+  process.stderr.write(
+    [
+      'opentrader-sidecar: invalid environment configuration',
+      ...lines,
+      '',
+      'See packages/sidecar/.env.example for valid values.',
+      '',
+    ].join('\n'),
+  );
+  process.exit(1);
+}
+
+export const env = parsed.data;
 export type Env = typeof env;
