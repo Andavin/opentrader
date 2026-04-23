@@ -95,9 +95,7 @@ describe('alpaca schemas', () => {
     expect(empty.bars).toEqual([]);
     const populated = barsResponseSchema.parse({
       symbol: 'AAPL',
-      bars: [
-        { t: '2026-04-22T13:30:00Z', o: 158, h: 161, l: 157.5, c: 160, v: 100000 },
-      ],
+      bars: [{ t: '2026-04-22T13:30:00Z', o: 158, h: 161, l: 157.5, c: 160, v: 100000 }],
       next_page_token: null,
     });
     expect(populated.bars).toHaveLength(1);

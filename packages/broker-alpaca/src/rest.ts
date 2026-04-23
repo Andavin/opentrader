@@ -88,7 +88,11 @@ export class AlpacaRest {
     const res = await fetch(url, { ...init, headers: { ...this.headers(), ...init.headers } });
     const text = await res.text();
     if (!res.ok) {
-      throw new AlpacaApiError(`alpaca ${init.method ?? 'GET'} ${path} ${res.status}`, res.status, text);
+      throw new AlpacaApiError(
+        `alpaca ${init.method ?? 'GET'} ${path} ${res.status}`,
+        res.status,
+        text,
+      );
     }
     const json: unknown = text.length ? JSON.parse(text) : {};
     return schema.parse(json);
@@ -104,7 +108,9 @@ export class AlpacaRest {
     return this.req(this.tradingBase, '/v2/positions', z.array(positionSchema));
   }
 
-  listOrders(opts: { status?: 'open' | 'closed' | 'all'; limit?: number } = {}): Promise<AlpacaOrder[]> {
+  listOrders(
+    opts: { status?: 'open' | 'closed' | 'all'; limit?: number } = {},
+  ): Promise<AlpacaOrder[]> {
     return this.req(this.tradingBase, '/v2/orders', z.array(orderSchema), {
       query: {
         status: opts.status ?? 'all',
@@ -197,17 +203,22 @@ export class AlpacaRest {
     const all: AlpacaOptionContract[] = [];
     let pageToken: string | undefined;
     do {
-      const res = await this.req(this.tradingBase, '/v2/options/contracts', optionContractsResponseSchema, {
-        query: {
-          underlying_symbols: opts.underlying_symbol,
-          expiration_date: opts.expiration_date,
-          expiration_date_gte: opts.expiration_date_gte,
-          expiration_date_lte: opts.expiration_date_lte,
-          type: opts.type,
-          limit: opts.limit ?? 1000,
-          page_token: pageToken,
+      const res = await this.req(
+        this.tradingBase,
+        '/v2/options/contracts',
+        optionContractsResponseSchema,
+        {
+          query: {
+            underlying_symbols: opts.underlying_symbol,
+            expiration_date: opts.expiration_date,
+            expiration_date_gte: opts.expiration_date_gte,
+            expiration_date_lte: opts.expiration_date_lte,
+            type: opts.type,
+            limit: opts.limit ?? 1000,
+            page_token: pageToken,
+          },
         },
-      });
+      );
       all.push(...res.option_contracts);
       pageToken = res.next_page_token ?? undefined;
     } while (pageToken && all.length < (opts.limit ?? Number.POSITIVE_INFINITY));

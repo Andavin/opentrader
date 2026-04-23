@@ -37,9 +37,12 @@ describe('workspace store', () => {
 
   it('selectActiveAccountRef returns null while demo and a real ref once promoted', () => {
     expect(selectActiveAccountRef(useWorkspaceStore.getState())).toBeNull();
-    useWorkspaceStore
-      .getState()
-      .setActiveAccount({ brokerId: 'alpaca', brokerLabel: 'alpaca', accountId: 'A1', name: 'Individual' });
+    useWorkspaceStore.getState().setActiveAccount({
+      brokerId: 'alpaca',
+      brokerLabel: 'alpaca',
+      accountId: 'A1',
+      name: 'Individual',
+    });
     expect(selectActiveAccountRef(useWorkspaceStore.getState())).toEqual({
       brokerId: 'alpaca',
       accountId: 'A1',

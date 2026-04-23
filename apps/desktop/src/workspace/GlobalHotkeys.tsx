@@ -2,12 +2,7 @@ import { useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { HOTKEY_BY_ID } from '../lib/hotkeys';
-import {
-  useBrokerStatus,
-  usePlaceOrder,
-  usePositions,
-  useQuote,
-} from '../lib/queries';
+import { useBrokerStatus, usePlaceOrder, usePositions, useQuote } from '../lib/queries';
 import { selectActiveAccountRef, useWorkspaceStore } from '../store/workspace';
 import { ShortcutsModal } from './ShortcutsModal';
 
@@ -49,16 +44,14 @@ export function GlobalHotkeys() {
     preventDefault: true,
     enabled: isConnected,
   });
-  useHotkeys(
-    HOTKEY_BY_ID.buyLimitAsk!.combo,
-    () => placeQuick('buy', 'limit', quote.data?.ask),
-    { preventDefault: true, enabled: isConnected && !!quote.data?.ask },
-  );
-  useHotkeys(
-    HOTKEY_BY_ID.sellLimitBid!.combo,
-    () => placeQuick('sell', 'limit', quote.data?.bid),
-    { preventDefault: true, enabled: isConnected && !!quote.data?.bid },
-  );
+  useHotkeys(HOTKEY_BY_ID.buyLimitAsk!.combo, () => placeQuick('buy', 'limit', quote.data?.ask), {
+    preventDefault: true,
+    enabled: isConnected && !!quote.data?.ask,
+  });
+  useHotkeys(HOTKEY_BY_ID.sellLimitBid!.combo, () => placeQuick('sell', 'limit', quote.data?.bid), {
+    preventDefault: true,
+    enabled: isConnected && !!quote.data?.bid,
+  });
   useHotkeys(
     HOTKEY_BY_ID.flattenPosition!.combo,
     () => {

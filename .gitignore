@@ -45,6 +45,8 @@ coverage/
 # local SQLite + playwright profiles (user data, never commit)
 *.db
 *.db-journal
+*.db-shm
 *.db-wal
 playwright-profiles/
+.opentrader-data/
 

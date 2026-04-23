@@ -143,9 +143,15 @@ export const optionContractSchema = z.object({
   style: z.enum(['american', 'european']).optional(),
   strike_price: z.union([z.string(), z.number()]).transform((v) => Number(v)),
   size: z.union([z.string(), z.number()]).optional(),
-  open_interest: z.union([z.string(), z.number()]).optional().transform((v) => (v === undefined ? undefined : Number(v))),
+  open_interest: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((v) => (v === undefined ? undefined : Number(v))),
   open_interest_date: z.string().optional(),
-  close_price: z.union([z.string(), z.number()]).optional().transform((v) => (v === undefined ? undefined : Number(v))),
+  close_price: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((v) => (v === undefined ? undefined : Number(v))),
   close_price_date: z.string().optional(),
 });
 
@@ -158,7 +164,13 @@ export const optionContractsResponseSchema = z.object({
 
 export const optionSnapshotSchema = z.object({
   latestQuote: z
-    .object({ bp: z.number(), ap: z.number(), bs: z.number().optional(), as: z.number().optional(), t: z.string() })
+    .object({
+      bp: z.number(),
+      ap: z.number(),
+      bs: z.number().optional(),
+      as: z.number().optional(),
+      t: z.string(),
+    })
     .optional(),
   latestTrade: z.object({ p: z.number(), s: z.number().optional(), t: z.string() }).optional(),
   greeks: z

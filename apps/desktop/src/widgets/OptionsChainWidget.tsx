@@ -33,7 +33,10 @@ export function OptionsChainWidget(props: IDockviewPanelProps) {
 
   const [expiration, setExpiration] = useState<string | null>(null);
 
-  const chain = useOptionsChain(broker, { underlying: symbol, expiration: expiration ?? undefined });
+  const chain = useOptionsChain(broker, {
+    underlying: symbol,
+    expiration: expiration ?? undefined,
+  });
 
   // Auto-pick the soonest expiration when the chain first loads / symbol changes.
   useEffect(() => {
@@ -96,7 +99,11 @@ export function OptionsChainWidget(props: IDockviewPanelProps) {
           )}
         </select>
         <span className="options-chain-status">
-          {chain.isFetching ? 'loading…' : chain.error ? `error: ${(chain.error as Error).message}` : ''}
+          {chain.isFetching
+            ? 'loading…'
+            : chain.error
+              ? `error: ${(chain.error as Error).message}`
+              : ''}
         </span>
         <DataSourcePicker panelId={props.api.id} />
       </header>

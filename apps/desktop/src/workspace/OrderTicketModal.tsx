@@ -55,7 +55,8 @@ export function OrderTicketModal() {
   const [stopLoss, setStopLoss] = useState('');
   const [stopLossLimit, setStopLossLimit] = useState('');
 
-  const isSingleEquity = !!draft && draft.legs.length === 1 && draft.legs[0]!.assetClass === 'equity';
+  const isSingleEquity =
+    !!draft && draft.legs.length === 1 && draft.legs[0]!.assetClass === 'equity';
   const isMultiLeg = !!draft && draft.legs.length > 1;
   const equitySymbol = isSingleEquity ? draft!.legs[0]!.symbol : null;
   const quote = useQuote(dataBroker, equitySymbol, !!draft);
@@ -134,8 +135,7 @@ export function OrderTicketModal() {
         ? {
             takeProfitPrice: Number.isFinite(tpNum) && tpNum > 0 ? tpNum : undefined,
             stopLossPrice: Number.isFinite(slNum) && slNum > 0 ? slNum : undefined,
-            stopLossLimit:
-              Number.isFinite(sllNum) && sllNum > 0 ? sllNum : undefined,
+            stopLossLimit: Number.isFinite(sllNum) && sllNum > 0 ? sllNum : undefined,
           }
         : undefined;
     const req: OrderRequest = {
@@ -162,7 +162,10 @@ export function OrderTicketModal() {
         ? limitNum
         : stopNum;
   const estimatedCost =
-    isSingleEquity && Number.isFinite(qtyNum) && referencePrice != null && Number.isFinite(referencePrice)
+    isSingleEquity &&
+    Number.isFinite(qtyNum) &&
+    referencePrice != null &&
+    Number.isFinite(referencePrice)
       ? qtyNum * referencePrice
       : null;
 
@@ -187,7 +190,12 @@ export function OrderTicketModal() {
               </span>
             )}
           </div>
-          <button type="button" className="modal-close" onClick={() => close(null)} aria-label="Close">
+          <button
+            type="button"
+            className="modal-close"
+            onClick={() => close(null)}
+            aria-label="Close"
+          >
             <X size={16} />
           </button>
         </header>

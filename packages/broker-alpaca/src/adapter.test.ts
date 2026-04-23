@@ -93,7 +93,9 @@ describe('AlpacaBroker', () => {
   describe('connect', () => {
     it('rejects credentials that fail validation', async () => {
       const broker = createAlpacaBroker(makeDeps());
-      await expect(broker.connect({ key: 'short', secret: 'short', paper: true })).rejects.toThrow();
+      await expect(
+        broker.connect({ key: 'short', secret: 'short', paper: true }),
+      ).rejects.toThrow();
       expect(broker.isConnected()).toBe(false);
     });
 
@@ -127,7 +129,10 @@ describe('AlpacaBroker', () => {
       vi.stubGlobal(
         'fetch',
         makeFetch([
-          { test: (u) => u.pathname === '/v2/account', respond: () => new Response('forbidden', { status: 401 }) },
+          {
+            test: (u) => u.pathname === '/v2/account',
+            respond: () => new Response('forbidden', { status: 401 }),
+          },
         ]),
       );
       const broker = createAlpacaBroker(makeDeps());
@@ -141,7 +146,10 @@ describe('AlpacaBroker', () => {
       vi.stubGlobal(
         'fetch',
         makeFetch([
-          { test: (u) => u.pathname === '/v2/account', respond: () => jsonResponse(ACCOUNT_FIXTURE) },
+          {
+            test: (u) => u.pathname === '/v2/account',
+            respond: () => jsonResponse(ACCOUNT_FIXTURE),
+          },
           {
             test: (u) => u.pathname.includes('/bars'),
             respond: () =>
@@ -150,12 +158,19 @@ describe('AlpacaBroker', () => {
                 bars: [{ t: '2026-04-22T13:30:00Z', o: 1, h: 1, l: 1, c: 1, v: 1 }],
               }),
           },
-          { test: (u) => u.pathname === '/v2/positions', respond: () => jsonResponse([POSITION_FIXTURE]) },
-          { test: (u) => u.pathname === '/v2/orders' && u.searchParams.get('status') !== null, respond: () => jsonResponse([ORDER_FIXTURE]) },
+          {
+            test: (u) => u.pathname === '/v2/positions',
+            respond: () => jsonResponse([POSITION_FIXTURE]),
+          },
+          {
+            test: (u) => u.pathname === '/v2/orders' && u.searchParams.get('status') !== null,
+            respond: () => jsonResponse([ORDER_FIXTURE]),
+          },
           { test: (u) => u.pathname === '/v2/orders', respond: () => jsonResponse(ORDER_FIXTURE) },
           {
             test: (u) => u.pathname.includes('/quotes/latest'),
-            respond: () => jsonResponse({ symbol: 'AAPL', quote: { t: 'now', bp: 160, ap: 160.05 } }),
+            respond: () =>
+              jsonResponse({ symbol: 'AAPL', quote: { t: 'now', bp: 160, ap: 160.05 } }),
           },
           {
             test: (u) => u.pathname.includes('/trades/latest'),
@@ -215,7 +230,11 @@ describe('AlpacaBroker', () => {
         filledQty: 5,
         avgFillPrice: 160.1,
       });
-      expect(orders[0]?.legs[0]).toMatchObject({ symbol: 'AAPL', side: 'buy', assetClass: 'equity' });
+      expect(orders[0]?.legs[0]).toMatchObject({
+        symbol: 'AAPL',
+        side: 'buy',
+        assetClass: 'equity',
+      });
     });
 
     it('getQuote combines latest quote + latest trade', async () => {

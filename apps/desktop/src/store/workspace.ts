@@ -155,6 +155,5 @@ export function selectActiveAccountRef(state: WorkspaceState): AccountRef | null
  * override if set, else the workspace default.
  */
 export function selectWidgetBroker(panelId: string) {
-  return (state: WorkspaceState): BrokerId =>
-    state.widgetDataSources[panelId] ?? state.dataBroker;
+  return (state: WorkspaceState): BrokerId => state.widgetDataSources[panelId] ?? state.dataBroker;
 }

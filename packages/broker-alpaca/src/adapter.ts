@@ -230,10 +230,7 @@ class AlpacaBroker implements Broker {
     };
   }
 
-  async getOptionsChain(req: {
-    underlying: string;
-    expiration?: string;
-  }): Promise<OptionsChain> {
+  async getOptionsChain(req: { underlying: string; expiration?: string }): Promise<OptionsChain> {
     const rest = this.requireRest();
     const contracts = await rest.listOptionContracts({
       underlying_symbol: req.underlying,
@@ -296,7 +293,8 @@ class AlpacaBroker implements Broker {
     const positions = await this.requireRest().listPositions();
     return positions.map((p) => ({
       symbol: p.symbol,
-      assetClass: (p.asset_class === 'us_equity' ? 'equity' : (p.asset_class as Position['assetClass'])),
+      assetClass:
+        p.asset_class === 'us_equity' ? 'equity' : (p.asset_class as Position['assetClass']),
       qty: p.qty,
       avgEntryPrice: p.avg_entry_price,
       marketValue: p.market_value,

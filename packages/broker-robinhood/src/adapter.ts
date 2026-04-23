@@ -16,12 +16,7 @@ import type {
   Position,
   Quote,
 } from '@opentrader/broker-core';
-import {
-  type Browser,
-  type BrowserContext,
-  type Page,
-  chromium,
-} from 'playwright';
+import { type Browser, type BrowserContext, type Page, chromium } from 'playwright';
 
 import { extractSessionFromCookies, type RobinhoodSession } from './session';
 
@@ -123,11 +118,7 @@ class RobinhoodBroker implements Broker {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       const url = page.url();
-      if (
-        url.includes('/account') ||
-        url.includes('/portfolio') ||
-        url.includes('/dashboard')
-      ) {
+      if (url.includes('/account') || url.includes('/portfolio') || url.includes('/dashboard')) {
         return;
       }
       // If the user closed the tab we'll throw on the next interaction.
@@ -199,7 +190,9 @@ class RobinhoodBroker implements Broker {
     from: number;
     to: number;
   }): Promise<Candle[]> {
-    throw new Error('robinhood.getCandles: scaffolding only — implement via /marketdata/historicals/');
+    throw new Error(
+      'robinhood.getCandles: scaffolding only — implement via /marketdata/historicals/',
+    );
   }
 
   async getBalances(_account: AccountRef): Promise<AccountBalances> {
@@ -215,7 +208,9 @@ class RobinhoodBroker implements Broker {
   }
 
   async placeOrder(_req: OrderRequest): Promise<Order> {
-    throw new Error('robinhood.placeOrder: scaffolding only — implement via /orders/ (multi-leg via /options/orders/)');
+    throw new Error(
+      'robinhood.placeOrder: scaffolding only — implement via /orders/ (multi-leg via /options/orders/)',
+    );
   }
 
   async cancelOrder(_account: AccountRef, _orderId: string): Promise<void> {

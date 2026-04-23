@@ -72,8 +72,7 @@ export const brokerClient = {
     req: { symbol: string; interval: CandleInterval; from: number; to: number },
   ) => sidecarFetch<Candle[]>(`/broker/${brokerId}/candles`, { query: req }),
 
-  getDataFeed: (brokerId: BrokerId) =>
-    sidecarFetch<DataFeedState>(`/broker/${brokerId}/data-feed`),
+  getDataFeed: (brokerId: BrokerId) => sidecarFetch<DataFeedState>(`/broker/${brokerId}/data-feed`),
 
   setDataFeed: (brokerId: BrokerId, feed: string) =>
     sidecarFetch<{ active: string }>(`/broker/${brokerId}/data-feed`, {
@@ -87,10 +86,7 @@ export const brokerClient = {
   getSnapshot: (brokerId: BrokerId, symbol: string) =>
     sidecarFetch<SymbolSnapshot>(`/broker/${brokerId}/snapshot/${encodeURIComponent(symbol)}`),
 
-  getOptionsChain: (
-    brokerId: BrokerId,
-    req: { underlying: string; expiration?: string },
-  ) =>
+  getOptionsChain: (brokerId: BrokerId, req: { underlying: string; expiration?: string }) =>
     sidecarFetch<OptionsChain>(
       `/broker/${brokerId}/options/${encodeURIComponent(req.underlying)}`,
       { query: { expiration: req.expiration } },
@@ -114,7 +110,5 @@ export const layoutsClient = {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
-  delete: (id: string) =>
-    sidecarFetch<{ deleted: true }>(`/layouts/${id}`, { method: 'DELETE' }),
+  delete: (id: string) => sidecarFetch<{ deleted: true }>(`/layouts/${id}`, { method: 'DELETE' }),
 };
-

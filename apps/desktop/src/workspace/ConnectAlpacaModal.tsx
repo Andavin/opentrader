@@ -33,7 +33,12 @@ export function ConnectAlpacaModal() {
       <div className="modal-card" onMouseDown={(e) => e.stopPropagation()}>
         <header className="modal-header">
           <h2>Connect Alpaca</h2>
-          <button type="button" className="modal-close" onClick={() => close(null)} aria-label="Close">
+          <button
+            type="button"
+            className="modal-close"
+            onClick={() => close(null)}
+            aria-label="Close"
+          >
             <X size={16} />
           </button>
         </header>
@@ -74,9 +79,7 @@ export function ConnectAlpacaModal() {
             <input type="checkbox" checked={paper} onChange={(e) => setPaper(e.target.checked)} />
             <span>Paper trading</span>
           </label>
-          {connect.isError && (
-            <p className="modal-error">{(connect.error as Error).message}</p>
-          )}
+          {connect.isError && <p className="modal-error">{(connect.error as Error).message}</p>}
           <div className="modal-actions">
             <button type="button" className="modal-btn-ghost" onClick={() => close(null)}>
               Cancel

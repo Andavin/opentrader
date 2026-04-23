@@ -33,11 +33,7 @@ export function DataFeedDropdown({ brokerId }: Props) {
 
   return (
     <div className="data-feed-dropdown" ref={rootRef}>
-      <button
-        type="button"
-        className="data-feed-trigger"
-        onClick={() => setOpen((v) => !v)}
-      >
+      <button type="button" className="data-feed-trigger" onClick={() => setOpen((v) => !v)}>
         <span className="data-feed-trigger-label">Data feed:</span>
         <span className="data-feed-trigger-active">{activeLabel}</span>
         <ChevronDown size={12} />
@@ -46,9 +42,7 @@ export function DataFeedDropdown({ brokerId }: Props) {
         <div className="data-feed-popover" role="menu">
           {feedQ.isLoading && <div className="data-feed-status">Probing entitlements…</div>}
           {feedQ.error && (
-            <div className="data-feed-status data-feed-error">
-              {(feedQ.error as Error).message}
-            </div>
+            <div className="data-feed-status data-feed-error">{(feedQ.error as Error).message}</div>
           )}
           {feedQ.data?.feeds.map((f) => {
             const isActive = f.id === activeId;
@@ -76,9 +70,7 @@ export function DataFeedDropdown({ brokerId }: Props) {
                 </span>
                 <span className="data-feed-item-body">
                   <span className="data-feed-item-label">{f.label}</span>
-                  {f.description && (
-                    <span className="data-feed-item-desc">{f.description}</span>
-                  )}
+                  {f.description && <span className="data-feed-item-desc">{f.description}</span>}
                 </span>
                 {!f.available && <span className="data-feed-item-tag">locked</span>}
               </button>

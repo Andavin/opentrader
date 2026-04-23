@@ -37,28 +37,32 @@ function makeStubBroker(overrides: Partial<Broker> = {}): Broker {
     isConnected: vi.fn(() => true),
     listAccounts: vi.fn(async () => [] as Account[]),
     getBalances: vi.fn(async () => ({}) as AccountBalances),
-    getQuote: vi.fn(async (s: string): Promise<Quote> => ({
-      symbol: s,
-      bid: 1,
-      ask: 2,
-      last: 1.5,
-      asOf: '2026-04-23T00:00:00Z',
-    })),
+    getQuote: vi.fn(
+      async (s: string): Promise<Quote> => ({
+        symbol: s,
+        bid: 1,
+        ask: 2,
+        last: 1.5,
+        asOf: '2026-04-23T00:00:00Z',
+      }),
+    ),
     getCandles: vi.fn(async () => [] as Candle[]),
     listPositions: vi.fn(async () => [] as Position[]),
     listOrders: vi.fn(async () => [] as Order[]),
-    placeOrder: vi.fn(async (req: OrderRequest): Promise<Order> => ({
-      id: 'real-order',
-      account: req.account,
-      legs: req.legs,
-      orderType: req.orderType,
-      qty: req.qty,
-      filledQty: 0,
-      status: 'open',
-      timeInForce: req.timeInForce,
-      submittedAt: 'now',
-      updatedAt: 'now',
-    })),
+    placeOrder: vi.fn(
+      async (req: OrderRequest): Promise<Order> => ({
+        id: 'real-order',
+        account: req.account,
+        legs: req.legs,
+        orderType: req.orderType,
+        qty: req.qty,
+        filledQty: 0,
+        status: 'open',
+        timeInForce: req.timeInForce,
+        submittedAt: 'now',
+        updatedAt: 'now',
+      }),
+    ),
     cancelOrder: vi.fn(async () => undefined),
   };
   return { ...base, ...overrides };
@@ -120,7 +124,9 @@ describe('PaperBroker', () => {
     expect(noOpt.refreshDataFeeds).toBeUndefined();
 
     const stream = vi.fn(() => (async function* () {})());
-    const chain = vi.fn(async () => ({ underlying: 'AAPL', expirations: [], contracts: [] }) as OptionsChain);
+    const chain = vi.fn(
+      async () => ({ underlying: 'AAPL', expirations: [], contracts: [] }) as OptionsChain,
+    );
     const feedList: DataFeed[] = [{ id: 'sip', label: 'SIP', available: true }];
     const innerWithOptional = makeStubBroker({
       streamQuotes: stream,

@@ -20,7 +20,12 @@ describe('extractSessionFromCookies', () => {
   it('pulls device + auth tokens off the right domain', () => {
     const session = extractSessionFromCookies([
       { name: 'device_id', value: 'dev-xyz', domain: '.robinhood.com' },
-      { name: 'auth_token', value: 'eyJabc'.padEnd(40, 'a'), domain: '.robinhood.com', expires: 1800000000 },
+      {
+        name: 'auth_token',
+        value: 'eyJabc'.padEnd(40, 'a'),
+        domain: '.robinhood.com',
+        expires: 1800000000,
+      },
       { name: 'unrelated', value: 'noop', domain: '.robinhood.com' },
     ]);
     expect(session.deviceToken).toBe('dev-xyz');

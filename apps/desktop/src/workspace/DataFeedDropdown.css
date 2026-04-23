@@ -13,7 +13,9 @@
   color: var(--text-primary);
   font-size: 11px;
   cursor: pointer;
-  transition: border-color 120ms ease, background 120ms ease;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
 }
 
 .data-feed-trigger:hover {

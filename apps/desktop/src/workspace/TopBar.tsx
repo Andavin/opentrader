@@ -18,7 +18,8 @@ export function TopBar({ dockviewApi }: Props) {
   const quote = useQuote(dataBroker, symbol);
 
   const last = quote.data?.last;
-  const change = last !== undefined && quote.data?.bid !== undefined ? last - quote.data.bid : undefined;
+  const change =
+    last !== undefined && quote.data?.bid !== undefined ? last - quote.data.bid : undefined;
   const changeClass = change === undefined ? 'text-muted' : change >= 0 ? 'price-up' : 'price-down';
 
   return (
@@ -28,7 +29,9 @@ export function TopBar({ dockviewApi }: Props) {
           <Search size={16} />
         </button>
         <span className="topbar-symbol tabular">{symbol ?? '—'}</span>
-        <span className="topbar-price tabular">{last !== undefined ? `$${last.toFixed(2)}` : '$0.00'}</span>
+        <span className="topbar-price tabular">
+          {last !== undefined ? `$${last.toFixed(2)}` : '$0.00'}
+        </span>
         <span className={`topbar-change tabular ${changeClass}`}>
           {change !== undefined ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}` : '—'}
         </span>

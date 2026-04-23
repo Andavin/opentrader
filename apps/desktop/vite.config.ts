@@ -32,5 +32,8 @@ export default defineConfig(() => ({
     target: 'esnext',
     minify: (process.env.TAURI_DEBUG ? false : 'esbuild') as 'esbuild' | false,
     sourcemap: !!process.env.TAURI_DEBUG,
+    // Tauri ships the bundle locally; chunk size matters less than for
+    // a CDN-served SPA. KLineChart + dockview push us past the default.
+    chunkSizeWarningLimit: 1500,
   },
 }));

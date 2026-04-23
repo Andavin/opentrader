@@ -142,12 +142,6 @@ class FidelityBroker implements Broker {
   async cancelOrder(_account: AccountRef, _orderId: string): Promise<void> {
     throw new Error('fidelity.cancelOrder: scaffolding only — drive the cancel button');
   }
-
-  // Helper — keeps the unused page warning quiet during scaffolding
-  // so noUnusedLocals stays green.
-  private async _dropPage(page: Page): Promise<void> {
-    await page.close();
-  }
 }
 
 export function createFidelityBroker(deps: BrokerDeps): Broker {
